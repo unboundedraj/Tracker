@@ -8,6 +8,14 @@ import { getMonthWeekColumns } from "@/utils/date";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { LinearProgress } from "@/components/ui/linear-progress";
 
+const monthFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+});
+
+const yearFormatter = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+});
+
 function weekBlockWidth(days: number): string {
   const gaps = Math.max(0, days - 1);
   return `calc(${days} * var(--day-size) + ${gaps} * var(--day-gap) + var(--week-pad) + var(--week-pad))`;
@@ -77,6 +85,9 @@ function isRenamedHabit(habitId: HabitId, habitName: string): boolean {
 
 export function HabitTracker() {
   const { state, today, toggleHabitDay, renameHabit } = useHabitMonth();
+  const now = new Date();
+  const month = monthFormatter.format(now);
+  const year = yearFormatter.format(now);
   const weekColumns = useMemo(() => getMonthWeekColumns(state.daysInMonth), [state.daysInMonth]);
   const trackedHabitIds = useMemo(
     () => state.habits.filter((habit) => isRenamedHabit(habit.id, habit.name)).map((habit) => habit.id),
@@ -97,7 +108,10 @@ export function HabitTracker() {
   return (
     <section className="habit-tracker" aria-label="Habit tracking calendar">
       <header className="habit-tracker__header">
-        <div className="habit-tracker__header-spacer" aria-hidden="true" />
+        <div className="habit-tracker__header-date" aria-label={`${month} ${year}`}>
+          <div className="habit-tracker__month">{month}</div>
+          <div className="habit-tracker__year">{year}</div>
+        </div>
         <div className="habit-tracker__weeks">
           {weekColumns.map((week) => (
             <div

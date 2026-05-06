@@ -3,12 +3,13 @@ import {
   INITIALIZATION_TITLE,
   PROJECT_NAME,
 } from "@/lib/project";
+import { orbitron } from "@/lib/fonts";
 
 export function ProjectInitializedBanner() {
   return (
     <section className="initialization-card" aria-labelledby="project-status-title">
-      <p className="initialization-card__eyebrow">{PROJECT_NAME}</p>
-      <h1 id="project-status-title" className="initialization-card__title">
+      <p className={`initialization-card__eyebrow ${orbitron.className}`}>{PROJECT_NAME}</p>
+      <h1 id="project-status-title" className={`initialization-card__title ${orbitron.className}`}>
         {INITIALIZATION_TITLE}
       </h1>
       <p className="initialization-card__description">

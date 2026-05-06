@@ -44,6 +44,7 @@ export function ThemeToggle() {
     <button
       type="button"
       className="theme-toggle"
+      data-theme={theme}
       onClick={() => {
         const next: Theme = theme === "dark" ? "light" : "dark";
         applyTheme(next);
@@ -58,7 +59,15 @@ export function ThemeToggle() {
       aria-label={label}
       title={label}
     >
-      {theme === "dark" ? "Light" : "Dark"}
+      <span className="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">
+        ☀
+      </span>
+      <span className="theme-toggle__track" aria-hidden="true">
+        <span className="theme-toggle__thumb" />
+      </span>
+      <span className="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">
+        ☾
+      </span>
     </button>
   );
 }

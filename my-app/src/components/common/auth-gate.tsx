@@ -2,6 +2,7 @@
 
 import { type FormEvent, useEffect, useState } from "react";
 import { AUTH_STORAGE_KEY } from "@/lib/auth";
+import { orbitron } from "@/lib/fonts";
 
 type AuthGateProps = {
   children: React.ReactNode;
@@ -83,7 +84,7 @@ export function AuthGate({ children, initialAuthenticated }: AuthGateProps) {
       <div className="auth-lock" role="presentation">
         <div className="auth-lock__panel" role="dialog" aria-modal="true" aria-labelledby="auth-lock-title">
           <p className="auth-lock__eyebrow">Personal use only</p>
-          <h1 id="auth-lock-title" className="auth-lock__title">
+          <h1 id="auth-lock-title" className={`auth-lock__title ${orbitron.className}`}>
             Enter password to open Tracker
           </h1>
           <p className="auth-lock__copy">
