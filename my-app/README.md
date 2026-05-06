@@ -10,8 +10,10 @@ my-app/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   └── auth/
-│   │   │       └── verify/
+│   │   │   ├── auth/
+│   │   │   │   └── verify/
+│   │   │   └── habits/
+│   │   │       └── [monthKey]/
 │   │   ├── globals.css
 │   │   ├── layout.tsx
 │   │   └── page.tsx
@@ -30,8 +32,10 @@ my-app/
 │   │   └── use-habit-month.ts
 │   ├── lib/
 │   │   ├── auth.ts
+│   │   ├── mongodb.ts
 │   │   └── project.ts
 │   ├── services/
+│   │   └── habit-month-api.ts
 │   ├── types/
 │   │   └── habits.ts
 │   └── utils/
@@ -82,3 +86,5 @@ npm run lint
 3. Added project documentation and environment placeholders.
 4. Added a root password gate backed by a server-side env variable and auth cookie.
 5. Added the habit tracker UI scaffold with weekly and per-habit progress.
+6. Added MongoDB Atlas-backed monthly habit storage with local fallback sync.
+7. Improved MongoDB reliability: retry after failed connects/index builds and show actionable sync/load error messages.

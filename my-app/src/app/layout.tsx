@@ -16,7 +16,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const initialAuthenticated = cookieStore.get(AUTH_COOKIE_NAME)?.value === "1";
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <AuthGate initialAuthenticated={initialAuthenticated}>{children}</AuthGate>
       </body>

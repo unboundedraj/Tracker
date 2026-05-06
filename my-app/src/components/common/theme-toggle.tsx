@@ -28,17 +28,28 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
+  const [theme, setTheme] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
 
   const label = useMemo(() => (theme === "dark" ? "Switch to light mode" : "Switch to dark mode"), [theme]);
 
   useEffect(() => {
-    applyTheme(theme);
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const initialTheme = (stored === "dark" || stored === "light" ? stored : window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light") as Theme;
+    
+    setTheme(initialTheme);
+    applyTheme(initialTheme);
+    setMounted(true);
+  }, []);
 
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, theme);
+  useEffect(() => {
+    if (!mounted) {
+      return;
     }
-  }, [theme]);
+
+    applyTheme(theme);
+    window.localStorage.setItem(STORAGE_KEY, theme);
+  }, [theme, mounted]);
 
   return (
     <button

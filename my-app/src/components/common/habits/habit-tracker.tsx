@@ -84,10 +84,16 @@ function isRenamedHabit(habitId: HabitId, habitName: string): boolean {
 }
 
 export function HabitTracker() {
-  const { state, today, toggleHabitDay, renameHabit } = useHabitMonth();
-  const now = new Date();
-  const month = monthFormatter.format(now);
-  const year = yearFormatter.format(now);
+  const { state, today, toggleHabitDay, renameHabit, syncStatus, syncMessage, mounted } = useHabitMonth();
+  
+  // Derive month/year from the state's monthKey instead of new Date() to ensure SSR consistency
+  const monthDate = useMemo(() => {
+    const [yearStr, monthStr] = state.monthKey.split("-");
+    return new Date(parseInt(yearStr), parseInt(monthStr) - 1, 1);
+  }, [state.monthKey]);
+  
+  const month = monthFormatter.format(monthDate);
+  const year = yearFormatter.format(monthDate);
   const weekColumns = useMemo(() => getMonthWeekColumns(state.daysInMonth), [state.daysInMonth]);
   const trackedHabitIds = useMemo(
     () => state.habits.filter((habit) => isRenamedHabit(habit.id, habit.name)).map((habit) => habit.id),
@@ -105,12 +111,32 @@ export function HabitTracker() {
     return mapping;
   }, [state.habits, state.recordsByHabitId]);
 
+  // Render skeleton/placeholder on server to match eventual client render, then show actual content when mounted
+  if (!mounted) {
+    return (
+      <section className="habit-tracker" aria-label="Habit tracking calendar">
+        <header className="habit-tracker__header">
+          <div className="habit-tracker__header-date" aria-label={`${month} ${year}`}>
+            <div className="habit-tracker__month">{month}</div>
+            <div className="habit-tracker__year">{year}</div>
+            <div className="habit-tracker__sync" data-status="synced" aria-live="polite">
+              Synced
+            </div>
+          </div>
+        </header>
+      </section>
+    );
+  }
+
   return (
     <section className="habit-tracker" aria-label="Habit tracking calendar">
       <header className="habit-tracker__header">
         <div className="habit-tracker__header-date" aria-label={`${month} ${year}`}>
           <div className="habit-tracker__month">{month}</div>
           <div className="habit-tracker__year">{year}</div>
+          <div className="habit-tracker__sync" data-status={syncStatus} aria-live="polite">
+            {syncMessage}
+          </div>
         </div>
         <div className="habit-tracker__weeks">
           {weekColumns.map((week) => (

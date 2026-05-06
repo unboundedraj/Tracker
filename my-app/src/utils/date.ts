@@ -12,8 +12,31 @@ export function getDaysInMonth(date: Date): number {
   return new Date(year, monthIndex + 1, 0).getDate();
 }
 
+export function getDaysInMonthFromMonthKey(monthKey: string): number {
+  const monthStart = getMonthStartDateFromMonthKey(monthKey);
+  const year = monthStart.getUTCFullYear();
+  const monthIndex = monthStart.getUTCMonth();
+  return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+}
+
 export function getDayOfMonth(date: Date): number {
   return date.getDate();
+}
+
+export function getMonthStartDate(date: Date): Date {
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
+}
+
+export function getMonthStartDateFromMonthKey(monthKey: string): Date {
+  const [yearPart, monthPart] = monthKey.split("-");
+  const year = Number(yearPart);
+  const month = Number(monthPart);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+    throw new Error(`Invalid month key: ${monthKey}`);
+  }
+
+  return new Date(Date.UTC(year, month - 1, 1));
 }
 
 export type WeekColumn = {

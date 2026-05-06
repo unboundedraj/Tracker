@@ -24,3 +24,16 @@ export type HabitMonthState = {
   habits: Habit[];
   recordsByHabitId: Record<HabitId, HabitMonthRecord>;
 };
+
+export type HabitMonthDocument = {
+  monthKey: string;
+  monthStart: string;
+  daysInMonth: number;
+  habits: Habit[];
+  recordsByHabitId: Record<HabitId, HabitMonthRecord>;
+  updatedAt: string;
+};
+
+export type HabitMonthDbDocument = Omit<HabitMonthDocument, "monthStart"> & {
+  monthStart: Date;
+};

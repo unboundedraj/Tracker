@@ -1,74 +1,54 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useSyncExternalStore } from "react";
-import type { Habit, HabitId, HabitMonthRecord, HabitMonthState } from "@/types/habits";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
+  Habit,
+  HabitId,
+  HabitMonthDocument,
+  HabitMonthRecord,
+  HabitMonthState,
+} from "@/types/habits";
 import { createBitstring, isBitstring, toggleBitAtIndex } from "@/utils/bitstring";
-import { getDayOfMonth, getDaysInMonth, getMonthKey } from "@/utils/date";
+import { getDayOfMonth, getDaysInMonth, getMonthKey, getMonthStartDateFromMonthKey } from "@/utils/date";
+import { fetchHabitMonth, saveHabitMonth } from "@/services/habit-month-api";
 
 const HABITS_COUNT = 30;
+const STORAGE_PREFIX = "tracker-habits:";
+const SNAPSHOT_SUFFIX = ":snapshot";
+const PENDING_SUFFIX = ":pending";
+
+export type HabitSyncStatus = "synced" | "saving" | "pending" | "offline" | "error";
+
+type HabitOperation =
+  | {
+      id: string;
+      type: "toggle";
+      habitId: HabitId;
+      day: number;
+      timestamp: string;
+    }
+  | {
+      id: string;
+      type: "rename";
+      habitId: HabitId;
+      name: string;
+      timestamp: string;
+    };
+
+type PersistentDocument = HabitMonthDocument;
 
 function createDefaultHabits(): Habit[] {
-  return Array.from({ length: HABITS_COUNT }, (_, index) => {
-    const habitNumber = index + 1;
-    return {
-      id: `habit-${habitNumber}`,
-      name: `Habit ${habitNumber}`,
-    };
-  });
+  return Array.from({ length: HABITS_COUNT }, (_, index) => ({
+    id: `habit-${index + 1}`,
+    name: `Habit ${index + 1}`,
+  }));
 }
 
-function storageKey(monthKey: string): string {
-  return `tracker-habits:${monthKey}`;
-}
+function createDefaultRecords(monthKey: string, daysInMonth: number): Record<HabitId, HabitMonthRecord> {
+  const records: Record<HabitId, HabitMonthRecord> = {};
 
-type PersistedPayload = {
-  monthKey: string;
-  daysInMonth: number;
-  habits: Habit[];
-  recordsByHabitId: Record<HabitId, HabitMonthRecord>;
-};
-
-const STORE_EVENT = "tracker-habits-store";
-
-function subscribeToMonth(monthKey: string, callback: () => void): () => void {
-  if (typeof window === "undefined") {
-    return () => undefined;
-  }
-
-  const handler = (event: Event) => {
-    if (event instanceof CustomEvent) {
-      const detail = (event as CustomEvent<string>).detail;
-      if (detail && detail !== monthKey) {
-        return;
-      }
-    }
-
-    callback();
-  };
-
-  window.addEventListener(STORE_EVENT, handler as EventListener);
-  window.addEventListener("storage", handler);
-
-  return () => {
-    window.removeEventListener(STORE_EVENT, handler as EventListener);
-    window.removeEventListener("storage", handler);
-  };
-}
-
-function emitMonthChange(monthKey: string) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.dispatchEvent(new CustomEvent(STORE_EVENT, { detail: monthKey }));
-}
-
-function createDefaultPayload(monthKey: string, daysInMonth: number): PersistedPayload {
-  const habits = createDefaultHabits();
-  const recordsByHabitId: Record<HabitId, HabitMonthRecord> = {};
-
-  for (const habit of habits) {
-    recordsByHabitId[habit.id] = {
+  for (const habit of createDefaultHabits()) {
+    records[habit.id] = {
       habitId: habit.id,
       monthKey,
       daysInMonth,
@@ -77,38 +57,44 @@ function createDefaultPayload(monthKey: string, daysInMonth: number): PersistedP
     };
   }
 
+  return records;
+}
+
+function storageKey(monthKey: string): string {
+  return `${STORAGE_PREFIX}${monthKey}${SNAPSHOT_SUFFIX}`;
+}
+
+function pendingKey(monthKey: string): string {
+  return `${STORAGE_PREFIX}${monthKey}${PENDING_SUFFIX}`;
+}
+
+function createDefaultDocument(monthKey: string, daysInMonth: number): HabitMonthDocument {
   return {
     monthKey,
+    monthStart: getMonthStartDateFromMonthKey(monthKey).toISOString(),
     daysInMonth,
-    habits,
-    recordsByHabitId,
+    habits: createDefaultHabits(),
+    recordsByHabitId: createDefaultRecords(monthKey, daysInMonth),
+    updatedAt: new Date().toISOString(),
   };
 }
 
-function readPayloadFromRaw(
-  raw: string,
+function normalizeDocument(
   monthKey: string,
   daysInMonth: number,
-  fallback: PersistedPayload,
-): PersistedPayload {
-  let payload: PersistedPayload | null = null;
-  try {
-    payload = JSON.parse(raw) as PersistedPayload;
-  } catch {
-    payload = null;
-  }
+  document?: Partial<PersistentDocument> | null,
+): HabitMonthDocument {
+  const monthStart = getMonthStartDateFromMonthKey(monthKey).toISOString();
+  const sourceHabits =
+    Array.isArray(document?.habits) && document.habits.length > 0 ? document.habits : createDefaultHabits();
+  const sourceRecords = document?.recordsByHabitId ?? {};
+  const recordsByHabitId: Record<HabitId, HabitMonthRecord> = {};
 
-  if (!payload || payload.monthKey !== monthKey || payload.daysInMonth !== daysInMonth) {
-    return fallback;
-  }
-
-  const nextRecordsByHabitId: Record<HabitId, HabitMonthRecord> = {};
-
-  for (const habit of payload.habits) {
-    const record = payload.recordsByHabitId[habit.id];
+  for (const habit of sourceHabits) {
+    const record = sourceRecords[habit.id];
     const checks = record?.checks;
 
-    nextRecordsByHabitId[habit.id] = {
+    recordsByHabitId[habit.id] = {
       habitId: habit.id,
       monthKey,
       daysInMonth,
@@ -122,10 +108,120 @@ function readPayloadFromRaw(
 
   return {
     monthKey,
+    monthStart,
     daysInMonth,
-    habits: payload.habits,
-    recordsByHabitId: nextRecordsByHabitId,
+    habits: sourceHabits,
+    recordsByHabitId,
+    updatedAt: document?.updatedAt ?? new Date().toISOString(),
   };
+}
+
+function readSnapshot(monthKey: string, daysInMonth: number): HabitMonthDocument | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(storageKey(monthKey));
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<PersistentDocument>;
+    if (parsed.monthKey !== monthKey || parsed.daysInMonth !== daysInMonth) {
+      return null;
+    }
+
+    return normalizeDocument(monthKey, daysInMonth, parsed);
+  } catch {
+    return null;
+  }
+}
+
+function persistSnapshot(document: HabitMonthDocument): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(storageKey(document.monthKey), JSON.stringify(document));
+}
+
+function readPendingOperations(monthKey: string): HabitOperation[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const raw = window.localStorage.getItem(pendingKey(monthKey));
+  if (!raw) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as HabitOperation[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistPendingOperations(monthKey: string, operations: HabitOperation[]): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (operations.length === 0) {
+    window.localStorage.removeItem(pendingKey(monthKey));
+    return;
+  }
+
+  window.localStorage.setItem(pendingKey(monthKey), JSON.stringify(operations));
+}
+
+function applyOperation(document: HabitMonthDocument, operation: HabitOperation): HabitMonthDocument {
+  if (operation.type === "toggle") {
+    const record = document.recordsByHabitId[operation.habitId];
+
+    if (!record) {
+      return document;
+    }
+
+    const nextChecks = toggleBitAtIndex(record.checks, operation.day - 1);
+
+    return {
+      ...document,
+      recordsByHabitId: {
+        ...document.recordsByHabitId,
+        [operation.habitId]: {
+          ...record,
+          checks: nextChecks,
+          updatedAt: operation.timestamp,
+        },
+      },
+      updatedAt: operation.timestamp,
+    };
+  }
+
+  return {
+    ...document,
+    habits: document.habits.map((habit) =>
+      habit.id === operation.habitId ? { ...habit, name: operation.name.trim() } : habit,
+    ),
+    updatedAt: operation.timestamp,
+  };
+}
+
+function applyOperations(document: HabitMonthDocument, operations: HabitOperation[]): HabitMonthDocument {
+  return operations.reduce((currentDocument, operation) => applyOperation(currentDocument, operation), document);
+}
+
+function queueOperation(monthKey: string, operation: HabitOperation): HabitOperation[] {
+  const nextOperations = [...readPendingOperations(monthKey), operation];
+  persistPendingOperations(monthKey, nextOperations);
+  return nextOperations;
+}
+
+function setSnapshot(document: HabitMonthDocument): void {
+  persistSnapshot(document);
 }
 
 export function useHabitMonth() {
@@ -134,78 +230,195 @@ export function useHabitMonth() {
   const daysInMonth = useMemo(() => getDaysInMonth(now), [now]);
   const today = useMemo(() => getDayOfMonth(now), [now]);
 
-  const fallbackPayload = useMemo(() => createDefaultPayload(monthKey, daysInMonth), [daysInMonth, monthKey]);
+  const defaultDocument = useMemo(() => createDefaultDocument(monthKey, daysInMonth), [daysInMonth, monthKey]);
+  const [document, setDocument] = useState<HabitMonthDocument>(() => readSnapshot(monthKey, daysInMonth) ?? defaultDocument);
+  const [syncStatus, setSyncStatus] = useState<HabitSyncStatus>("synced");
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  const snapshotCacheRef = useRef<{ raw: string | null; value: PersistedPayload } | null>(null);
+  const documentRef = useRef(document);
+  const syncQueueRef = useRef(Promise.resolve());
+  const mountedRef = useRef(false);
 
-  const getSnapshot = useCallback((): PersistedPayload => {
-    if (typeof window === "undefined") {
-      return fallbackPayload;
-    }
+  useEffect(() => {
+    documentRef.current = document;
+  }, [document]);
 
-    const key = storageKey(monthKey);
-    const raw = window.localStorage.getItem(key);
+  useEffect(() => {
+    setMounted(true);
+    mountedRef.current = true;
+  }, []);
 
-    if (snapshotCacheRef.current && snapshotCacheRef.current.raw === raw) {
-      return snapshotCacheRef.current.value;
-    }
+  const flushPendingOperations = useCallback(
+    async (preferredDocument?: HabitMonthDocument) => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setSyncStatus(readPendingOperations(monthKey).length > 0 ? "offline" : "synced");
+        setSyncError(readPendingOperations(monthKey).length > 0 ? "Offline changes queued." : null);
+        return;
+      }
 
-    const value = raw
-      ? readPayloadFromRaw(raw, monthKey, daysInMonth, fallbackPayload)
-      : fallbackPayload;
+      const pendingOperations = readPendingOperations(monthKey);
+      if (pendingOperations.length === 0) {
+        setSyncStatus("synced");
+        setSyncError(null);
+        return;
+      }
 
-    snapshotCacheRef.current = { raw, value };
-    return value;
-  }, [daysInMonth, fallbackPayload, monthKey]);
+      setSyncStatus("saving");
+      setSyncError(null);
 
-  const getServerSnapshot = useCallback((): PersistedPayload => fallbackPayload, [fallbackPayload]);
+      syncQueueRef.current = syncQueueRef.current.then(async () => {
+        const latestServerDocument = await fetchHabitMonth(monthKey).catch(() => null);
+        const baseDocument = normalizeDocument(
+          monthKey,
+          daysInMonth,
+          latestServerDocument ?? preferredDocument ?? documentRef.current,
+        );
+        const mergedDocument = applyOperations(baseDocument, pendingOperations);
 
-  const payload = useSyncExternalStore(
-    useCallback((callback) => subscribeToMonth(monthKey, callback), [monthKey]),
-    getSnapshot,
-    getServerSnapshot,
+        try {
+          const savedDocument = await saveHabitMonth(mergedDocument);
+          const normalizedSavedDocument = normalizeDocument(monthKey, daysInMonth, savedDocument);
+          documentRef.current = normalizedSavedDocument;
+          setDocument(normalizedSavedDocument);
+          setSnapshot(normalizedSavedDocument);
+          persistPendingOperations(monthKey, []);
+          setSyncStatus("synced");
+          setSyncError(null);
+        } catch (error) {
+          setSnapshot(mergedDocument);
+          setDocument(mergedDocument);
+
+          const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+          const baseMessage =
+            error instanceof Error
+              ? error.message
+              : "MongoDB write failed. Check Atlas IP access, credentials, and cluster status.";
+          const message = isOnline ? baseMessage : "Offline changes queued.";
+
+          setSyncStatus(isOnline ? "error" : "offline");
+          setSyncError(message);
+          throw new Error(message);
+        }
+      });
+
+      await syncQueueRef.current.catch(() => undefined);
+    },
+    [daysInMonth, monthKey],
   );
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    let cancelled = false;
+
+    void (async () => {
+      const localSnapshot = readSnapshot(monthKey, daysInMonth);
+      const pendingOperations = readPendingOperations(monthKey);
+
+      if (typeof navigator !== "undefined" && navigator.onLine) {
+        try {
+          const serverDocument = await fetchHabitMonth(monthKey);
+
+          if (cancelled) {
+            return;
+          }
+
+          const serverState = normalizeDocument(monthKey, daysInMonth, serverDocument ?? defaultDocument);
+          const mergedDocument = applyOperations(serverState, pendingOperations);
+
+          documentRef.current = mergedDocument;
+          setDocument(mergedDocument);
+          setSnapshot(mergedDocument);
+
+          if (pendingOperations.length > 0) {
+            await flushPendingOperations(mergedDocument);
+          } else {
+            setSyncStatus("synced");
+            setSyncError(null);
+          }
+
+          return;
+        } catch (error) {
+          if (!cancelled) {
+            setSyncStatus("error");
+            setSyncError(error instanceof Error ? error.message : "Failed to load from MongoDB.");
+          }
+
+          // Fall back to local data below.
+        }
+      }
+
+      const initialDocument = localSnapshot ?? defaultDocument;
+      const localDocument = applyOperations(initialDocument, pendingOperations);
+
+      documentRef.current = localDocument;
+      setDocument(localDocument);
+      setSnapshot(localDocument);
+      setSyncStatus(pendingOperations.length > 0 ? "offline" : "synced");
+      setSyncError(pendingOperations.length > 0 ? "Offline changes queued." : null);
+    })();
+
+    const handleOnline = () => {
+      void flushPendingOperations(documentRef.current);
+    };
+
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [defaultDocument, daysInMonth, flushPendingOperations, monthKey]);
 
   const state = useMemo<HabitMonthState>(
     () => ({
-      monthKey: payload.monthKey,
-      daysInMonth: payload.daysInMonth,
-      habits: payload.habits,
-      recordsByHabitId: payload.recordsByHabitId,
+      monthKey: document.monthKey,
+      daysInMonth: document.daysInMonth,
+      habits: document.habits,
+      recordsByHabitId: document.recordsByHabitId,
     }),
-    [payload.daysInMonth, payload.habits, payload.monthKey, payload.recordsByHabitId],
+    [document],
+  );
+
+  const updateWithOperation = useCallback(
+    async (operation: HabitOperation) => {
+      const nextDocument = applyOperation(documentRef.current, operation);
+      documentRef.current = nextDocument;
+      setDocument(nextDocument);
+      setSnapshot(nextDocument);
+
+      const pendingOperations = queueOperation(monthKey, operation);
+      if (pendingOperations.length > 0 && typeof navigator !== "undefined" && !navigator.onLine) {
+        setSyncStatus("offline");
+        setSyncError("Offline changes queued.");
+        return;
+      }
+
+      try {
+        await flushPendingOperations(nextDocument);
+      } catch (error) {
+        const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+        setSyncStatus(isOnline ? "error" : "offline");
+        setSyncError(error instanceof Error ? error.message : "Sync failed.");
+      }
+    },
+    [flushPendingOperations, monthKey],
   );
 
   const toggleHabitDay = useCallback(
     (habitId: HabitId, day: number) => {
-      const record = payload.recordsByHabitId[habitId];
-
-      if (!record) {
-        return;
-      }
-
-      const index = day - 1;
-      const nextChecks = toggleBitAtIndex(record.checks, index);
-
-      const nextPayload: PersistedPayload = {
-        ...payload,
-        recordsByHabitId: {
-          ...payload.recordsByHabitId,
-          [habitId]: {
-            ...record,
-            checks: nextChecks,
-            updatedAt: new Date().toISOString(),
-          },
-        },
+      const operation: HabitOperation = {
+        id: `${habitId}:${day}:${Date.now()}`,
+        type: "toggle",
+        habitId,
+        day,
+        timestamp: new Date().toISOString(),
       };
 
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(storageKey(monthKey), JSON.stringify(nextPayload));
-      }
-
-      emitMonthChange(monthKey);
+      void updateWithOperation(operation);
     },
-    [monthKey, payload],
+    [updateWithOperation],
   );
 
   const renameHabit = useCallback(
@@ -215,28 +428,46 @@ export function useHabitMonth() {
         return;
       }
 
-      const nextHabits = payload.habits.map((habit) =>
-        habit.id === habitId ? { ...habit, name: nextName } : habit,
-      );
-
-      const nextPayload: PersistedPayload = {
-        ...payload,
-        habits: nextHabits,
+      const operation: HabitOperation = {
+        id: `${habitId}:rename:${Date.now()}`,
+        type: "rename",
+        habitId,
+        name: nextName,
+        timestamp: new Date().toISOString(),
       };
 
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(storageKey(monthKey), JSON.stringify(nextPayload));
-      }
-
-      emitMonthChange(monthKey);
+      void updateWithOperation(operation);
     },
-    [monthKey, payload],
+    [updateWithOperation],
   );
+
+  const syncMessage = useMemo(() => {
+    if (syncError) {
+      return syncError;
+    }
+
+    switch (syncStatus) {
+      case "saving":
+        return "Saving...";
+      case "pending":
+        return "Pending sync";
+      case "offline":
+        return "Offline changes queued";
+      case "error":
+        return "Sync failed, retrying later";
+      default:
+        return "Synced";
+    }
+  }, [syncError, syncStatus]);
 
   return {
     state,
     today,
     toggleHabitDay,
     renameHabit,
+    syncStatus,
+    syncMessage,
+    syncError,
+    mounted,
   };
 }

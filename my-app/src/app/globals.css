@@ -466,6 +466,41 @@ body {
   text-transform: uppercase;
 }
 
+.habit-tracker__sync {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--ink-rgb), 0.14);
+  background: rgba(var(--paper-rgb), 0.6);
+  color: rgba(var(--ink-rgb), 0.7);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.habit-tracker__sync[data-status="saving"] {
+  border-color: color-mix(in srgb, var(--week-3) 50%, rgba(var(--ink-rgb), 0.16));
+  color: color-mix(in srgb, var(--week-3) 70%, rgba(var(--ink-rgb), 0.2));
+}
+
+.habit-tracker__sync[data-status="offline"] {
+  border-color: color-mix(in srgb, var(--week-2) 50%, rgba(var(--ink-rgb), 0.16));
+  color: color-mix(in srgb, var(--week-2) 70%, rgba(var(--ink-rgb), 0.2));
+}
+
+.habit-tracker__sync[data-status="error"] {
+  border-color: rgba(220, 38, 38, 0.42);
+  color: rgba(220, 38, 38, 0.88);
+}
+
+.habit-tracker__sync[data-status="synced"] {
+  border-color: color-mix(in srgb, var(--week-1) 34%, rgba(var(--ink-rgb), 0.16));
+  color: color-mix(in srgb, var(--week-1) 65%, rgba(var(--ink-rgb), 0.2));
+}
+
 .habit-tracker__header {
   display: grid;
   grid-template-columns: var(--habit-col) 1fr var(--progress-col);
@@ -813,6 +848,16 @@ body {
     --week-gap: 10px;
     --week-pad: 10px;
   }
+
+  .app-shell__content {
+    padding: 68px 16px 16px;
+  }
+
+  .theme-toggle {
+    left: 12px;
+    right: auto;
+    top: 12px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -826,7 +871,13 @@ body {
   }
 
   .app-shell__content {
-    padding: 20px;
+    padding: 68px 20px 20px;
+  }
+
+  .theme-toggle {
+    left: 12px;
+    right: auto;
+    top: 12px;
   }
 
   .initialization-card {
@@ -848,32 +899,45 @@ body {
   }
 
   .habit-tracker__header {
-    grid-template-columns: 1fr;
-    align-items: start;
+    grid-template-columns: var(--habit-col) 1fr var(--progress-col);
+    align-items: end;
+    padding: 6px 4px 6px;
   }
 
-  .habit-tracker__header-spacer {
-    display: none;
+  .habit-tracker__header-date {
+    min-width: 0;
+    padding-left: 2px;
+  }
+
+  .habit-tracker__sync {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+  }
+
+  .habit-tracker__weeks {
+    gap: 4px;
   }
 
   .habit-tracker__header-progress {
-    justify-self: start;
+    justify-self: end;
   }
 
   .habit-tracker__cell {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 6px;
+    padding-right: 6px;
   }
 
   .habit-tracker__row {
-    grid-template-columns: 200px 1fr 120px;
+    grid-template-columns: var(--habit-col) 1fr var(--progress-col);
   }
 
   .habit-tracker {
-    --day-size: 18px;
-    --day-gap: 4px;
-    --week-gap: 8px;
-    --week-pad: 8px;
+    --habit-col: 138px;
+    --progress-col: 92px;
+    --day-size: 14px;
+    --day-gap: 2px;
+    --week-gap: 4px;
+    --week-pad: 4px;
   }
 }
 
