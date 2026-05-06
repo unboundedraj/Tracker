@@ -1,0 +1,9 @@
+{
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "AUTH_PASSWORD": "@auth_password",
+    "NEXT_PUBLIC_APP_NAME": "Tracker"
+  }
+}
