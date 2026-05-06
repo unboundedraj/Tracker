@@ -1,10 +1,13 @@
 import { AppShell } from "@/components/layout/app-shell";
-import { ProjectInitializedBanner } from "@/components/common/project-initialized-banner";
+import { HabitTracker } from "@/components/common/habits/habit-tracker";
 
 export default function Home() {
   return (
     <AppShell>
-      <ProjectInitializedBanner />
+      <div className="habit-page">
+        <h1 className="habit-page__title">Daily Habit Tracker</h1>
+        <HabitTracker />
+      </div>
     </AppShell>
   );
 }

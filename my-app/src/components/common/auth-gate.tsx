@@ -11,20 +11,23 @@ type AuthGateProps = {
 type VerificationState = "idle" | "loading" | "error";
 
 export function AuthGate({ children, initialAuthenticated }: AuthGateProps) {
-  const [authenticated, setAuthenticated] = useState(initialAuthenticated);
+  const [authenticated, setAuthenticated] = useState(() => {
+    if (initialAuthenticated) {
+      return true;
+    }
+
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.localStorage.getItem(AUTH_STORAGE_KEY) === "true";
+  });
   const [password, setPassword] = useState("");
   const [state, setState] = useState<VerificationState>("idle");
   const [message, setMessage] = useState("Enter the access password to continue.");
 
   useEffect(() => {
     if (typeof window === "undefined") {
-      return;
-    }
-
-    const storedAuthentication = window.localStorage.getItem(AUTH_STORAGE_KEY);
-
-    if (storedAuthentication === "true") {
-      setAuthenticated(true);
       return;
     }
 

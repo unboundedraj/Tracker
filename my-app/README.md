@@ -18,17 +18,25 @@ my-app/
 │   ├── components/
 │   │   ├── common/
 │   │   │   ├── auth-gate.tsx
+│   │   │   ├── habits/
+│   │   │   │   └── habit-tracker.tsx
 │   │   │   └── project-initialized-banner.tsx
 │   │   ├── layout/
 │   │   │   └── app-shell.tsx
 │   │   └── ui/
+│   │       ├── circular-progress.tsx
+│   │       └── linear-progress.tsx
 │   ├── hooks/
+│   │   └── use-habit-month.ts
 │   ├── lib/
 │   │   ├── auth.ts
 │   │   └── project.ts
 │   ├── services/
 │   ├── types/
+│   │   └── habits.ts
 │   └── utils/
+│       ├── bitstring.ts
+│       └── date.ts
 ├── .env.example
 └── README.md
 ```
@@ -42,6 +50,7 @@ my-app/
 - [x] Root boilerplate content removed
 - [x] Responsive shell and initialization card styles added
 - [x] Password-based auth gate added at the app root
+- [x] Habit tracker single-page UI scaffold (weeks/days grid, progress indicators, local persistence)
 
 ## Setup Guide
 
@@ -72,3 +81,4 @@ npm run lint
 2. Added a temporary initialized landing page to prevent 404s.
 3. Added project documentation and environment placeholders.
 4. Added a root password gate backed by a server-side env variable and auth cookie.
+5. Added the habit tracker UI scaffold with weekly and per-habit progress.
