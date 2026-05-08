@@ -1,3 +1,5 @@
+import type { ObjectId } from "mongodb";
+
 export type MiscTodo = {
   id: string;
   task: string;
@@ -6,7 +8,7 @@ export type MiscTodo = {
 };
 
 export type MiscTodoDbDocument = {
-  _id?: string;
+  _id?: ObjectId;
   task: string;
   note?: string;
   createdAt: Date;
