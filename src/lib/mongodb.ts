@@ -1,14 +1,18 @@
 import { MongoClient, type Db, type Collection } from "mongodb";
 import type { HabitMonthDbDocument } from "@/types/habits";
+import type { MiscTodoDbDocument } from "@/types/misc-todos";
 
 const DATABASE_NAME = process.env.MONGODB_DB ?? "tracker";
 const COLLECTION_NAME = process.env.MONGODB_COLLECTION ?? "habit_months";
+const MISC_TODOS_COLLECTION_NAME = "misc_todos";
 
 declare global {
   // eslint-disable-next-line no-var
   var __trackerMongoClientPromise: Promise<MongoClient> | undefined;
   // eslint-disable-next-line no-var
   var __trackerHabitMonthsIndexesReady: Promise<void> | undefined;
+  // eslint-disable-next-line no-var
+  var __trackerMiscTodosIndexesReady: Promise<void> | undefined;
 }
 
 function getMongoClientPromise(): Promise<MongoClient> {
@@ -55,4 +59,23 @@ export async function ensureHabitMonthsIndexes(): Promise<void> {
   }
 
   await globalThis.__trackerHabitMonthsIndexesReady;
+}
+
+export async function getMiscTodosCollection(): Promise<Collection<MiscTodoDbDocument>> {
+  const db = await getMongoDb();
+  return db.collection<MiscTodoDbDocument>(MISC_TODOS_COLLECTION_NAME);
+}
+
+export async function ensureMiscTodosIndexes(): Promise<void> {
+  if (!globalThis.__trackerMiscTodosIndexesReady) {
+    globalThis.__trackerMiscTodosIndexesReady = (async () => {
+      const collection = await getMiscTodosCollection();
+      await collection.createIndex({ createdAt: 1 });
+    })().catch((error) => {
+      globalThis.__trackerMiscTodosIndexesReady = undefined;
+      throw error;
+    });
+  }
+
+  await globalThis.__trackerMiscTodosIndexesReady;
 }

@@ -75,3 +75,10 @@ export function getMonthWeekColumns(daysInMonth: number): WeekColumn[] {
     })
     .filter((column) => column.days.length > 0);
 }
+
+export function getDaysElapsed(isoDateString: string): number {
+  const createdDate = new Date(isoDateString);
+  const now = new Date();
+  const diffMs = now.getTime() - createdDate.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}

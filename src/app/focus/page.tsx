@@ -32,11 +32,6 @@ type Particle = {
   a: number;
 };
 
-function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-}
-
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   if (target.isContentEditable) return true;
@@ -131,20 +126,6 @@ export default function FocusModePage() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    if (prefersReducedMotion()) {
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      const dpr = window.devicePixelRatio || 1;
-      const { innerWidth: w, innerHeight: h } = window;
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-      return;
-    }
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
