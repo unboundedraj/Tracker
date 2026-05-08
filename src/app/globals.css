@@ -308,10 +308,11 @@ body {
 .auth-lock__panel {
   width: min(100%, 560px);
   padding: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--border);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
+  background: var(--surface-strong);
+  color: var(--foreground);
+  box-shadow: var(--shadow);
 }
 
 .auth-lock__eyebrow {
@@ -332,7 +333,7 @@ body {
 
 .auth-lock__copy {
   margin: 16px 0 0;
-  color: rgba(22, 32, 43, 0.78);
+  color: rgba(var(--ink-rgb), 0.78);
   line-height: 1.7;
 }
 
@@ -351,9 +352,9 @@ body {
   width: 100%;
   min-height: 52px;
   padding: 0 16px;
-  border: 1px solid rgba(22, 32, 43, 0.18);
+  border: 1px solid rgba(var(--ink-rgb), 0.18);
   border-radius: 16px;
-  background: #fff;
+  background: rgba(var(--paper-rgb), 0.92);
   color: var(--foreground);
   font: inherit;
   outline: none;
@@ -370,7 +371,7 @@ body {
   border: 0;
   border-radius: 16px;
   background: var(--foreground);
-  color: #fff;
+  color: var(--background);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -393,16 +394,16 @@ body {
 }
 
 .auth-lock__message--loading {
-  color: rgba(22, 32, 43, 0.72);
+  color: rgba(var(--ink-rgb), 0.72);
 }
 
 .auth-lock__message--idle {
-  color: rgba(22, 32, 43, 0.72);
+  color: rgba(var(--ink-rgb), 0.72);
 }
 
 .auth-lock__note {
   margin: 18px 0 0;
-  color: rgba(22, 32, 43, 0.7);
+  color: rgba(var(--ink-rgb), 0.7);
   font-size: 0.9rem;
   line-height: 1.7;
 }
