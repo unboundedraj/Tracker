@@ -5,7 +5,7 @@ Tracker is a Next.js App Router project organized for modular growth from the st
 ## Folder Tree
 
 ```text
-my-app/
+.
 ├── public/
 ├── src/
 │   ├── app/
