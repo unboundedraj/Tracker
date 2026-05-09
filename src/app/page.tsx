@@ -9,14 +9,16 @@ export default function Home() {
     <AppShell>
       <div className="habit-page">
         <div className="habit-page__header">
-          <div className="habit-page__header-buttons">
+          <h1 className={`habit-page__title ${orbitron.className}`}>Daily Habit Tracker</h1>
+        </div>
+        <section className="habit-page__feature-bar" aria-label="Tools and features">
+          <div className="habit-page__feature-bar-inner">
             <Link href="/focus" className={`focus-mode-button ${orbitron.className}`}>
               Focus Mode
             </Link>
             <MiscellaneousTodosButton />
           </div>
-          <h1 className={`habit-page__title ${orbitron.className}`}>Daily Habit Tracker</h1>
-        </div>
+        </section>
         <HabitTracker />
       </div>
     </AppShell>
