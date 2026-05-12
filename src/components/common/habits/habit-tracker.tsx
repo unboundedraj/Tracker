@@ -176,7 +176,7 @@ export function HabitTracker() {
                     style={{ width: fullWeekWidth }}
                   >
                     {week.days.map((day) => (
-                      <div key={day} className="habit-days__day">
+                      <div key={day} className={`habit-days__day${day === today ? " habit-days__day--today" : ""}`}>
                         {day}
                       </div>
                     ))}

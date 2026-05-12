@@ -1068,6 +1068,32 @@ html[data-theme="dark"] .focus-summary {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: rgba(var(--ink-rgb), 0.72);
+  position: relative;
+  transition: color 200ms ease;
+}
+
+.habit-days__day--today {
+  color: rgba(var(--ink-rgb), 0.92);
+  font-weight: 700;
+}
+
+.habit-days__day--today::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 1px solid rgba(220, 38, 38, 0.85);
+  border-radius: 0;
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.3);
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .habit-days__day--today {
+  color: rgba(236, 242, 248, 0.92);
+}
+
+html[data-theme="dark"] .habit-days__day--today::before {
+  border-color: rgba(239, 68, 68, 0.95);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5), inset 0 0 8px rgba(239, 68, 68, 0.25);
 }
 
 .habit-checkbox {
