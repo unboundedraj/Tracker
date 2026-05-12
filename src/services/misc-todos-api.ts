@@ -1,6 +1,6 @@
 "use client";
 
-import type { MiscTodo } from "@/types/misc-todos";
+import type { MiscTodo, MiscTodoLevel } from "@/types/misc-todos";
 
 type MiscTodoListResponse = {
   todos: MiscTodo[];
@@ -8,6 +8,11 @@ type MiscTodoListResponse = {
 };
 
 type MiscTodoCreateResponse = {
+  todo: MiscTodo | null;
+  message?: string;
+};
+
+type MiscTodoUpdateResponse = {
   todo: MiscTodo | null;
   message?: string;
 };
@@ -55,7 +60,7 @@ export async function fetchMiscTodos(): Promise<MiscTodo[]> {
   return payload.todos ?? [];
 }
 
-export async function createMiscTodo(task: string, note?: string): Promise<MiscTodo> {
+export async function createMiscTodo(task: string, note?: string, level: MiscTodoLevel = "medium"): Promise<MiscTodo> {
   const response = await fetchWithTimeout("/api/misc-todos", {
     method: "POST",
     cache: "no-store",
@@ -63,7 +68,7 @@ export async function createMiscTodo(task: string, note?: string): Promise<MiscT
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ task, note }),
+    body: JSON.stringify({ task, note, level }),
   });
 
   const payload = await parseResponse<MiscTodoCreateResponse>(response);
@@ -83,4 +88,27 @@ export async function deleteMiscTodo(id: string): Promise<void> {
   });
 
   await parseResponse<MiscTodoDeleteResponse>(response);
+}
+
+export async function updateMiscTodo(
+  id: string,
+  updates: { level?: MiscTodoLevel; sortOrder?: number }
+): Promise<MiscTodo> {
+  const response = await fetchWithTimeout(`/api/misc-todos/${id}`, {
+    method: "PATCH",
+    cache: "no-store",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updates),
+  });
+
+  const payload = await parseResponse<MiscTodoUpdateResponse>(response);
+
+  if (!payload.todo) {
+    throw new Error(payload.message ?? "Failed to update todo.");
+  }
+
+  return payload.todo;
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { ensureMiscTodosIndexes, getMiscTodosCollection } from "@/lib/mongodb";
-import type { MiscTodo } from "@/types/misc-todos";
+import type { MiscTodo, MiscTodoLevel } from "@/types/misc-todos";
 
 export const runtime = "nodejs";
 
@@ -13,6 +13,7 @@ type ListResponse = {
 type CreateRequestBody = {
   task?: string;
   note?: string;
+  level?: MiscTodoLevel;
 };
 
 type CreateResponse = {
@@ -46,6 +47,47 @@ function friendlyMongoMessage(error: unknown): string {
   return message;
 }
 
+const LEVEL_WEIGHT: Record<MiscTodoLevel, number> = {
+  high: 0,
+  medium: 1,
+  low: 2,
+};
+
+function normalizeLevel(value: unknown): MiscTodoLevel {
+  return value === "high" || value === "low" ? value : "medium";
+}
+
+function normalizeTodo(doc: {
+  _id?: ObjectId;
+  task: string;
+  note?: string;
+  level?: MiscTodoLevel;
+  sortOrder?: number;
+  createdAt: Date;
+}): MiscTodo {
+  return {
+    id: doc._id?.toString() ?? "",
+    task: doc.task,
+    note: doc.note,
+    level: normalizeLevel(doc.level),
+    sortOrder: typeof doc.sortOrder === "number" ? doc.sortOrder : doc.createdAt.getTime(),
+    createdAt: doc.createdAt.toISOString(),
+  };
+}
+
+function compareTodos(left: MiscTodo, right: MiscTodo): number {
+  const levelDelta = LEVEL_WEIGHT[left.level] - LEVEL_WEIGHT[right.level];
+  if (levelDelta !== 0) {
+    return levelDelta;
+  }
+
+  if (left.sortOrder !== right.sortOrder) {
+    return right.sortOrder - left.sortOrder;
+  }
+
+  return right.createdAt.localeCompare(left.createdAt);
+}
+
 export async function GET(): Promise<NextResponse<ListResponse>> {
   try {
     await ensureMiscTodosIndexes();
@@ -56,12 +98,7 @@ export async function GET(): Promise<NextResponse<ListResponse>> {
       .sort({ createdAt: -1 })
       .toArray();
 
-    const todos: MiscTodo[] = documents.map((doc) => ({
-      id: doc._id?.toString() ?? "",
-      task: doc.task,
-      note: doc.note,
-      createdAt: doc.createdAt.toISOString(),
-    }));
+    const todos = documents.map((doc) => normalizeTodo(doc)).sort(compareTodos);
 
     return NextResponse.json({ todos });
   } catch (error) {
@@ -83,20 +120,25 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateRes
 
     await ensureMiscTodosIndexes();
     const collection = await getMiscTodosCollection();
+    const level = normalizeLevel(body.level);
 
     const now = new Date();
     const result = await collection.insertOne({
       task: body.task.trim(),
       note: body.note && typeof body.note === "string" ? body.note.trim() : undefined,
+      level,
+      sortOrder: now.getTime(),
       createdAt: now,
     });
 
-    const todo: MiscTodo = {
-      id: result.insertedId.toString(),
+    const todo: MiscTodo = normalizeTodo({
+      _id: result.insertedId,
       task: body.task.trim(),
       note: body.note && typeof body.note === "string" ? body.note.trim() : undefined,
-      createdAt: now.toISOString(),
-    };
+      level,
+      sortOrder: now.getTime(),
+      createdAt: now,
+    });
 
     return NextResponse.json({ todo });
   } catch (error) {

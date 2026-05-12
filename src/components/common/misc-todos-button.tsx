@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { orbitron } from "@/lib/fonts";
 import { MiscellaneousTodosModal } from "./misc-todos-modal";
 
 export function MiscellaneousTodosButton() {
@@ -8,7 +9,7 @@ export function MiscellaneousTodosButton() {
 
   return (
     <>
-      <button className="misc-todos-button" onClick={() => setIsModalOpen(true)}>
+      <button className={`misc-todos-button ${orbitron.className}`} onClick={() => setIsModalOpen(true)}>
         Miscellaneous Todos
       </button>
       <MiscellaneousTodosModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

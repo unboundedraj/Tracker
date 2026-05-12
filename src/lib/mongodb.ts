@@ -71,6 +71,7 @@ export async function ensureMiscTodosIndexes(): Promise<void> {
     globalThis.__trackerMiscTodosIndexesReady = (async () => {
       const collection = await getMiscTodosCollection();
       await collection.createIndex({ createdAt: 1 });
+      await collection.createIndex({ level: 1, sortOrder: -1 });
     })().catch((error) => {
       globalThis.__trackerMiscTodosIndexesReady = undefined;
       throw error;

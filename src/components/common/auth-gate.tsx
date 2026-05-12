@@ -28,7 +28,11 @@ export function AuthGate({ children, initialAuthenticated }: AuthGateProps) {
     }
 
     if (window.localStorage.getItem(AUTH_STORAGE_KEY) === "true") {
-      setAuthenticated(true);
+      const timeoutId = window.setTimeout(() => {
+        setAuthenticated(true);
+      }, 0);
+
+      return () => window.clearTimeout(timeoutId);
     }
   }, [initialAuthenticated]);
 

@@ -88,3 +88,4 @@ npm run lint
 5. Added the habit tracker UI scaffold with weekly and per-habit progress.
 6. Added MongoDB Atlas-backed monthly habit storage with local fallback sync.
 7. Improved MongoDB reliability: retry after failed connects/index builds and show actionable sync/load error messages.
+8. Redesigned miscellaneous todos into priority lanes with draggable, persisted ordering and a solid modal surface.
