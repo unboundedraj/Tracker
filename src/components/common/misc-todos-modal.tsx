@@ -175,7 +175,7 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
     return Date.now();
   };
 
-  const handleLaneDrop = (event: React.DragEvent<HTMLDivElement>, level: MiscTodoLevel) => {
+  const handleLaneDrop = (event: React.DragEvent<HTMLElement>, level: MiscTodoLevel) => {
     event.preventDefault();
     const draggedTodo = todos.find((todo) => todo.id === draggedTodoId);
 
