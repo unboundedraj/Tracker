@@ -209,33 +209,55 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
     void syncTodoLevel(draggedTodo, level, sortOrder);
   };
 
-  const renderTodoCard = (todo: MiscTodo, level: MiscTodoLevel, index: number) => (
-    <div
-      key={todo.id}
-      className={`misc-todos-item misc-todos-item--draggable${draggedTodoId === todo.id ? " misc-todos-item--dragging" : ""}`}
-      draggable
-      onDragStart={() => setDraggedTodoId(todo.id)}
-      onDragEnd={() => setDraggedTodoId(null)}
-      onDragOver={(event) => event.preventDefault()}
-      onDrop={(event) => handleItemDrop(event, level, index, todo.id)}
-      aria-grabbed={draggedTodoId === todo.id}
-    >
-      <div className="misc-todos-item__content">
-        <div className="misc-todos-item__badge">{levelMeta[level].title}</div>
-        <div className="misc-todos-item__task">{todo.task}</div>
-        {todo.note && <div className="misc-todos-item__note">{todo.note}</div>}
-        <div className="misc-todos-item__time">{getDaysElapsed(todo.createdAt)} days ago</div>
-      </div>
-      <button
-        type="button"
-        className="misc-todos-item__delete"
-        onClick={() => handleDeleteTodo(todo.id)}
-        aria-label="Delete todo"
+  const getColorForLevel = (level: MiscTodoLevel, intensity: number): string => {
+    const colors: Record<MiscTodoLevel, { r: number; g: number; b: number }> = {
+      high: { r: 220, g: 38, b: 38 },    // Red
+      medium: { r: 59, g: 130, b: 246 }, // Blue
+      low: { r: 34, g: 197, b: 94 },     // Green
+    };
+
+    const color = colors[level];
+    const whiteBlend = 1 - intensity;
+    const finalR = Math.round(color.r * intensity + 255 * whiteBlend);
+    const finalG = Math.round(color.g * intensity + 255 * whiteBlend);
+    const finalB = Math.round(color.b * intensity + 255 * whiteBlend);
+
+    return `rgb(${finalR}, ${finalG}, ${finalB})`;
+  };
+
+  const renderTodoCard = (todo: MiscTodo, level: MiscTodoLevel, index: number, totalInLane: number) => {
+    // Calculate intensity based on position: full intensity at top, fading to near-white at bottom
+    const intensity = Math.max(0.15, 1 - (index / Math.max(1, totalInLane - 1)));
+    const textColor = getColorForLevel(level, intensity);
+
+    return (
+      <div
+        key={todo.id}
+        className={`misc-todos-item misc-todos-item--draggable${draggedTodoId === todo.id ? " misc-todos-item--dragging" : ""}`}
+        draggable
+        onDragStart={() => setDraggedTodoId(todo.id)}
+        onDragEnd={() => setDraggedTodoId(null)}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => handleItemDrop(event, level, index, todo.id)}
+        aria-grabbed={draggedTodoId === todo.id}
       >
-        ✓
-      </button>
-    </div>
-  );
+        <div className="misc-todos-item__content">
+          <div className="misc-todos-item__badge">{levelMeta[level].title}</div>
+          <div className="misc-todos-item__task" style={{ color: textColor }}>{todo.task}</div>
+          {todo.note && <div className="misc-todos-item__note">{todo.note}</div>}
+          <div className="misc-todos-item__time">{getDaysElapsed(todo.createdAt)} days ago</div>
+        </div>
+        <button
+          type="button"
+          className="misc-todos-item__delete"
+          onClick={() => handleDeleteTodo(todo.id)}
+          aria-label="Delete todo"
+        >
+          ✓
+        </button>
+      </div>
+    );
+  };
 
   if (!isOpen) return null;
 
@@ -287,7 +309,7 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
                   {laneTodos.length === 0 ? (
                     <p className="misc-todos-empty">Drop a todo here.</p>
                   ) : (
-                    laneTodos.map((todo, index) => renderTodoCard(todo, level, index))
+                    laneTodos.map((todo, index) => renderTodoCard(todo, level, index, laneTodos.length))
                   )}
                 </div>
               </section>
