@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useHabitMonth } from "@/hooks/use-habit-month";
 import type { HabitId } from "@/types/habits";
 import { countOnes } from "@/utils/bitstring";
@@ -84,7 +84,8 @@ function isRenamedHabit(habitId: HabitId, habitName: string): boolean {
 }
 
 export function HabitTracker() {
-  const { state, today, toggleHabitDay, renameHabit, syncStatus, syncMessage, mounted } = useHabitMonth();
+  const { state, today, toggleHabitDay, renameHabit, syncStatus, syncMessage, mounted, reorderHabits } = useHabitMonth();
+  const [draggedHabitId, setDraggedHabitId] = useState<HabitId | null>(null);
   
   // Derive month/year from the state's monthKey instead of new Date() to ensure SSR consistency
   const monthDate = useMemo(() => {
@@ -100,6 +101,36 @@ export function HabitTracker() {
     [state.habits],
   );
   const fullWeekWidth = useMemo(() => weekBlockWidth(7), []);
+
+  const handleHabitDragStart = (habitId: HabitId) => {
+    setDraggedHabitId(habitId);
+  };
+
+  const handleHabitDragEnd = () => {
+    setDraggedHabitId(null);
+  };
+
+  const handleHabitDrop = (targetHabitId: HabitId) => {
+    if (!draggedHabitId || draggedHabitId === targetHabitId) {
+      setDraggedHabitId(null);
+      return;
+    }
+
+    const draggedIndex = state.habits.findIndex((h) => h.id === draggedHabitId);
+    const targetIndex = state.habits.findIndex((h) => h.id === targetHabitId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedHabitId(null);
+      return;
+    }
+
+    const newHabits = [...state.habits];
+    const [draggedHabit] = newHabits.splice(draggedIndex, 1);
+    newHabits.splice(targetIndex, 0, draggedHabit);
+
+    void reorderHabits(newHabits);
+    setDraggedHabitId(null);
+  };
 
   const checksByHabitId = useMemo(() => {
     const mapping: Record<HabitId, string> = {};
@@ -193,9 +224,19 @@ export function HabitTracker() {
           {state.habits.map((habit) => {
             const record = state.recordsByHabitId[habit.id];
             const checks = record?.checks ?? "";
+            const isDragging = draggedHabitId === habit.id;
 
             return (
-              <div key={habit.id} className="habit-tracker__row" role="row">
+              <div
+                key={habit.id}
+                className={`habit-tracker__row${isDragging ? " habit-tracker__row--dragging" : ""}`}
+                role="row"
+                draggable
+                onDragStart={() => handleHabitDragStart(habit.id)}
+                onDragEnd={handleHabitDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => handleHabitDrop(habit.id)}
+              >
                 <div className="habit-tracker__cell habit-tracker__cell--sidebar" role="rowheader">
                   <input
                     key={`${habit.id}:${habit.name}`}

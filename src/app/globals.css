@@ -956,6 +956,11 @@ html[data-theme="dark"] .focus-summary {
   backdrop-filter: blur(10px);
 }
 
+.habit-tracker__row--dragging {
+  opacity: 0.6;
+  background: rgba(var(--week-3), 0.08);
+}
+
 .habit-tracker__cell {
   padding: 2px 6px;
 }
@@ -973,6 +978,12 @@ html[data-theme="dark"] .focus-summary {
 
 .habit-tracker__grid-body .habit-tracker__row {
   border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+  cursor: grab;
+  transition: opacity 160ms ease, background 160ms ease;
+}
+
+.habit-tracker__grid-body .habit-tracker__row:active {
+  cursor: grabbing;
 }
 
 .habit-sidebar {

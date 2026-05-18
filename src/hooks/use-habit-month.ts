@@ -441,6 +441,28 @@ export function useHabitMonth() {
     [updateWithOperation],
   );
 
+  const reorderHabits = useCallback(
+    async (reorderedHabits: Habit[]) => {
+      const nextDocument = {
+        ...documentRef.current,
+        habits: reorderedHabits,
+        updatedAt: new Date().toISOString(),
+      };
+      documentRef.current = nextDocument;
+      setDocument(nextDocument);
+      setSnapshot(nextDocument);
+
+      try {
+        await flushPendingOperations(nextDocument);
+      } catch (error) {
+        const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+        setSyncStatus(isOnline ? "error" : "offline");
+        setSyncError(error instanceof Error ? error.message : "Sync failed.");
+      }
+    },
+    [flushPendingOperations],
+  );
+
   const syncMessage = useMemo(() => {
     if (syncError) {
       return syncError;
@@ -465,6 +487,7 @@ export function useHabitMonth() {
     today,
     toggleHabitDay,
     renameHabit,
+    reorderHabits,
     syncStatus,
     syncMessage,
     syncError,

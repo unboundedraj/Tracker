@@ -113,9 +113,28 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   try {
     await ensureHabitMonthsIndexes();
     const collection = await getHabitMonthsCollection();
-    const document = await collection.findOne({ monthKey });
+    const dbDocument = await collection.findOne({ monthKey });
 
-    return NextResponse.json({ document: document ?? null });
+    // Convert mongoDocument to client format (Date to ISO string) before normalization
+    const clientDocument: Partial<HabitMonthDocument> | null = dbDocument
+      ? {
+          ...dbDocument,
+          monthStart: dbDocument.monthStart instanceof Date
+            ? dbDocument.monthStart.toISOString()
+            : dbDocument.monthStart,
+        }
+      : null;
+
+    // Normalize the document to ensure it has the correct structure
+    const normalizedDocument = normalizeDocument(monthKey, clientDocument);
+
+    // Convert the Date back to ISO string for the response
+    const responseDocument: HabitMonthDocument = {
+      ...normalizedDocument,
+      monthStart: normalizedDocument.monthStart.toISOString(),
+    };
+
+    return NextResponse.json({ document: responseDocument ?? null });
   } catch (error) {
     console.error("[api/habits] GET failed", error);
     return NextResponse.json(
@@ -146,7 +165,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     await ensureHabitMonthsIndexes();
     const collection = await getHabitMonthsCollection();
 
-    const { monthKey: _, monthStart: __, ...normalizedForUpdate } = normalized;
+    const normalizedForUpdate = {
+      daysInMonth: normalized.daysInMonth,
+      habits: normalized.habits,
+      recordsByHabitId: normalized.recordsByHabitId,
+      updatedAt: normalized.updatedAt,
+    };
 
     await collection.updateOne(
       { monthKey },
@@ -159,7 +183,17 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     const savedDocument = await collection.findOne({ monthKey });
 
-    return NextResponse.json({ document: savedDocument });
+    // Convert the Date back to ISO string for the response
+    const responseDocument: HabitMonthDocument | null = savedDocument
+      ? {
+          ...savedDocument,
+          monthStart: savedDocument.monthStart instanceof Date
+            ? savedDocument.monthStart.toISOString()
+            : savedDocument.monthStart,
+        }
+      : null;
+
+    return NextResponse.json({ document: responseDocument });
   } catch (error) {
     console.error("[api/habits] PUT failed", error);
     return NextResponse.json(
