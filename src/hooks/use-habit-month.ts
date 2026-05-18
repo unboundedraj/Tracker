@@ -451,16 +451,23 @@ export function useHabitMonth() {
       documentRef.current = nextDocument;
       setDocument(nextDocument);
       setSnapshot(nextDocument);
+      setSyncStatus("saving");
 
       try {
-        await flushPendingOperations(nextDocument);
+        const savedDocument = await saveHabitMonth(nextDocument);
+        const normalizedSavedDocument = normalizeDocument(monthKey, savedDocument);
+        documentRef.current = normalizedSavedDocument;
+        setDocument(normalizedSavedDocument);
+        setSnapshot(normalizedSavedDocument);
+        setSyncStatus("synced");
+        setSyncError(null);
       } catch (error) {
         const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
         setSyncStatus(isOnline ? "error" : "offline");
         setSyncError(error instanceof Error ? error.message : "Sync failed.");
       }
     },
-    [flushPendingOperations],
+    [monthKey],
   );
 
   const syncMessage = useMemo(() => {
