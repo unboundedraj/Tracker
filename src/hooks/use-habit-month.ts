@@ -455,10 +455,9 @@ export function useHabitMonth() {
 
       try {
         const savedDocument = await saveHabitMonth(nextDocument);
-        const normalizedSavedDocument = normalizeDocument(monthKey, savedDocument);
-        documentRef.current = normalizedSavedDocument;
-        setDocument(normalizedSavedDocument);
-        setSnapshot(normalizedSavedDocument);
+        documentRef.current = savedDocument;
+        setDocument(savedDocument);
+        setSnapshot(savedDocument);
         setSyncStatus("synced");
         setSyncError(null);
       } catch (error) {
@@ -467,7 +466,7 @@ export function useHabitMonth() {
         setSyncError(error instanceof Error ? error.message : "Sync failed.");
       }
     },
-    [monthKey],
+    [],
   );
 
   const syncMessage = useMemo(() => {
