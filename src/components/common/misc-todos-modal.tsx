@@ -17,7 +17,9 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
   const [draggedTodoId, setDraggedTodoId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const sortOrderCounterRef = useRef(0);
 
   const levelMeta: Record<
     MiscTodoLevel,
@@ -28,7 +30,7 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
     low: { title: "Low", description: "Do later" },
   };
 
-  const levelOrder: MiscTodoLevel[] = ["high", "medium", "low"];
+  const levelOrder = useMemo(() => ["high", "medium", "low"] as const, []);
 
   const sortedTodos = useMemo(
     () => [...todos].sort((left, right) => {
@@ -75,12 +77,6 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
     loadTodos();
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setDraggedTodoId(null);
-    }
-  }, [isOpen]);
-
   // Handle escape key
   useEffect(() => {
     if (!isOpen) return;
@@ -98,6 +94,8 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
   // Close modal when clicking outside
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === modalRef.current) {
+      setShowForm(false);
+      setDraggedTodoId(null);
       onClose();
     }
   };
@@ -118,6 +116,7 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
       setTodos([newTodo, ...todos]);
       setTaskInput("");
       setNoteInput("");
+      setShowForm(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create todo");
     } finally {
@@ -172,7 +171,8 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
       return nextTodo.sortOrder + 1;
     }
 
-    return Date.now();
+    sortOrderCounterRef.current += 1;
+    return sortOrderCounterRef.current;
   };
 
   const handleLaneDrop = (event: React.DragEvent<HTMLElement>, level: MiscTodoLevel) => {
@@ -244,40 +244,25 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
       <div className="misc-todos-modal">
         <div className="misc-todos-modal__header">
           <h2 className="misc-todos-modal__title">Miscellaneous Todos</h2>
-          <button type="button" className="misc-todos-modal__close" onClick={onClose} aria-label="Close modal">
-            ✕
-          </button>
+          <div className="misc-todos-modal__header-actions">
+            <button
+              type="button"
+              className="misc-todos-modal__add-button"
+              onClick={() => setShowForm(!showForm)}
+              aria-label="Add new todo"
+              title="Add new todo"
+            >
+              +
+            </button>
+            <button type="button" className="misc-todos-modal__close" onClick={() => {
+              setShowForm(false);
+              setDraggedTodoId(null);
+              onClose();
+            }} aria-label="Close modal">
+              ✕
+            </button>
+          </div>
         </div>
-
-        <form onSubmit={handleAddTodo} className="misc-todos-form">
-          <div className="misc-todos-form__group">
-            <input
-              type="text"
-              className="misc-todos-form__input"
-              placeholder="Add a task..."
-              value={taskInput}
-              onChange={(e) => setTaskInput(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="misc-todos-form__group">
-            <textarea
-              className="misc-todos-form__textarea"
-              placeholder="Add a note (optional)..."
-              value={noteInput}
-              onChange={(e) => setNoteInput(e.target.value)}
-              disabled={isLoading}
-              rows={2}
-            />
-          </div>
-
-          {error && <div className="misc-todos-error">{error}</div>}
-
-          <button type="submit" className="misc-todos-form__submit" disabled={isLoading}>
-            {isLoading ? "Adding..." : "Add Todo"}
-          </button>
-        </form>
 
         <div className="misc-todos-board">
           {levelOrder.map((level) => {
@@ -309,7 +294,51 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
             );
           })}
         </div>
-      </div>
+        {showForm && (
+          <form onSubmit={handleAddTodo} className="misc-todos-form">
+            <div className="misc-todos-form__group">
+              <input
+                type="text"
+                className="misc-todos-form__input"
+                placeholder="Add a task..."
+                value={taskInput}
+                onChange={(e) => setTaskInput(e.target.value)}
+                disabled={isLoading}
+                autoFocus
+              />
+            </div>
+
+            <div className="misc-todos-form__group">
+              <textarea
+                className="misc-todos-form__textarea"
+                placeholder="Add a note (optional)..."
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+                disabled={isLoading}
+                rows={2}
+              />
+            </div>
+
+            {error && <div className="misc-todos-error">{error}</div>}
+
+            <div className="misc-todos-form__actions">
+              <button type="submit" className="misc-todos-form__submit" disabled={isLoading}>
+                {isLoading ? "Adding..." : "Add Todo"}
+              </button>
+              <button
+                type="button"
+                className="misc-todos-form__cancel"
+                onClick={() => {
+                  setShowForm(false);
+                  setError(null);
+                }}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}      </div>
     </div>
   );
 }
