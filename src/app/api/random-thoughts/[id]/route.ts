@@ -23,7 +23,7 @@ function formatError(error: unknown): string {
 
 function dbToClient(doc: RandomThoughtDbDocument) {
   return {
-    id: doc._id.toString(),
+    id: doc._id?.toString() ?? "",
     content: doc.content,
     isCompleted: doc.isCompleted,
     sortOrder: doc.sortOrder,

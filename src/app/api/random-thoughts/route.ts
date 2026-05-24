@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ensureRandomThoughtsIndexes, getRandomThoughtsCollection } from "@/lib/mongodb";
-import type { RandomThought } from "@/types/random-thoughts";
+import type { RandomThought, RandomThoughtDbDocument } from "@/types/random-thoughts";
 
 export const runtime = "nodejs";
 
@@ -22,7 +22,7 @@ function formatError(error: unknown): string {
 
 function dbToClient(doc: RandomThoughtDbDocument): RandomThought {
   return {
-    id: doc._id.toString(),
+    id: doc._id?.toString() ?? "",
     content: doc.content,
     isCompleted: doc.isCompleted,
     sortOrder: doc.sortOrder,
