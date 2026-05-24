@@ -37,16 +37,15 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    await ensureRandomThoughtsIndexes();
-    let objectId;
-    try {
-      objectId = new ObjectId(id);
-    } catch {
+    
+    if (!ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: "Invalid thought ID format" },
         { status: 400 }
       );
     }
+
+    await ensureRandomThoughtsIndexes();
 
     const updates = await request.json();
 
@@ -71,19 +70,19 @@ export async function PATCH(
 
     const collection = await getRandomThoughtsCollection();
     const result = await collection.findOneAndUpdate(
-      { _id: objectId },
+      { _id: new ObjectId(id) },
       { $set: updateFields },
       { returnDocument: "after" }
     );
 
-    if (!result.value) {
+    if (!result) {
       return NextResponse.json(
         { error: "Random thought not found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(dbToClient(result.value));
+    return NextResponse.json(dbToClient(result));
   } catch (error) {
     const message = formatError(error);
     return NextResponse.json({ error: message }, { status: 500 });
@@ -96,19 +95,18 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    await ensureRandomThoughtsIndexes();
-    let objectId;
-    try {
-      objectId = new ObjectId(id);
-    } catch {
+    
+    if (!ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: "Invalid thought ID format" },
         { status: 400 }
       );
     }
 
+    await ensureRandomThoughtsIndexes();
+
     const collection = await getRandomThoughtsCollection();
-    const result = await collection.deleteOne({ _id: objectId });
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       return NextResponse.json(
