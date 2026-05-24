@@ -306,7 +306,10 @@ export function MiscellaneousTodosModal({ isOpen, onClose }: MiscellaneousTodosM
                 </div>
 
                 <div className="misc-todos-lane__list">
-                  {laneTodos.length === 0 ? (
+                  {error && !showForm && level === "high" && (
+                    <p className="misc-todos-empty" style={{color: '#ef4444'}}>{error}</p>
+                  )}
+                  {laneTodos.length === 0 && (!error || level !== "high" || showForm) ? (
                     <p className="misc-todos-empty">Drop a todo here.</p>
                   ) : (
                     laneTodos.map((todo, index) => renderTodoCard(todo, level, index, laneTodos.length))

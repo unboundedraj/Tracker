@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { HabitTracker } from "@/components/common/habits/habit-tracker";
 import { MiscellaneousTodosButton } from "@/components/common/misc-todos-button";
+import ShoppingListButton from "@/components/common/shopping-list-button";
 import { orbitron } from "@/lib/fonts";
 import Link from "next/link";
 
@@ -17,6 +18,7 @@ export default function Home() {
               Focus Mode
             </Link>
             <MiscellaneousTodosButton />
+            <ShoppingListButton />
           </div>
         </section>
         <HabitTracker />

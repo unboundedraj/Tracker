@@ -27,6 +27,15 @@ async function parseResponse(response: Response): Promise<HabitMonthResponse> {
   const payload = (await response.json().catch(() => null)) as HabitMonthResponse | null;
 
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined") {
+      // Clear auth on 401 to force re-login, but only once per session to prevent infinite reloads
+      const reloadKey = "tracker-auth-reload-attempted";
+      if (!window.sessionStorage.getItem(reloadKey)) {
+        window.sessionStorage.setItem(reloadKey, "true");
+        window.localStorage.removeItem("tracker-authenticated");
+        window.location.reload();
+      }
+    }
     throw new Error(payload?.message ?? `Request failed with status ${response.status}`);
   }
 

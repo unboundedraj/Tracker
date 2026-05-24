@@ -89,3 +89,4 @@ npm run lint
 6. Added MongoDB Atlas-backed monthly habit storage with local fallback sync.
 7. Improved MongoDB reliability: retry after failed connects/index builds and show actionable sync/load error messages.
 8. Redesigned miscellaneous todos into priority lanes with draggable, persisted ordering and a solid modal surface.
+9. Added Shopping List with a draggable active/completed list, strike-off capability, and MongoDB persistence.
