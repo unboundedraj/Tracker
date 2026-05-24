@@ -90,3 +90,15 @@ npm run lint
 7. Improved MongoDB reliability: retry after failed connects/index builds and show actionable sync/load error messages.
 8. Redesigned miscellaneous todos into priority lanes with draggable, persisted ordering and a solid modal surface.
 9. Added Shopping List with a draggable active/completed list, strike-off capability, and MongoDB persistence.
+10. Added Random Thoughts with a draggable active/archived list, strike-off capability, and MongoDB persistence.
+
+## Evolution
+
+Tracker began as a lightweight personal habit tracker—a focused tool for building daily streaks and monitoring progress month-by-month. Over time, it is evolving into a broader **personalized assistant platform** that organizes multiple dimensions of your personal life:
+
+- **Habits**: Track daily routines and long-term behavior patterns
+- **Focus Mode**: Dedicated distraction-free environment for deep work
+- **Miscellaneous Todos**: Priority-based task management with visual lanes
+- **Shopping List**: Organized, draggable inventory management
+
+Future expansions will continue layering additional personal productivity tools, all unified under a single authenticated interface with offline support and MongoDB persistence.

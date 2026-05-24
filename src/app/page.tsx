@@ -2,6 +2,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { HabitTracker } from "@/components/common/habits/habit-tracker";
 import { MiscellaneousTodosButton } from "@/components/common/misc-todos-button";
 import ShoppingListButton from "@/components/common/shopping-list-button";
+import RandomThoughtsButton from "@/components/common/random-thoughts-button";
 import { orbitron } from "@/lib/fonts";
 import Link from "next/link";
 
@@ -19,6 +20,7 @@ export default function Home() {
             </Link>
             <MiscellaneousTodosButton />
             <ShoppingListButton />
+            <RandomThoughtsButton />
           </div>
         </section>
         <HabitTracker />

@@ -2,11 +2,13 @@ import { MongoClient, type Db, type Collection } from "mongodb";
 import type { HabitMonthDbDocument } from "@/types/habits";
 import type { MiscTodoDbDocument } from "@/types/misc-todos";
 import type { ShoppingItemDbDocument } from "@/types/shopping-list";
+import type { RandomThoughtDbDocument } from "@/types/random-thoughts";
 
 const DATABASE_NAME = process.env.MONGODB_DB ?? "tracker";
 const COLLECTION_NAME = process.env.MONGODB_COLLECTION ?? "habit_months";
 const MISC_TODOS_COLLECTION_NAME = "misc_todos";
 const SHOPPING_LIST_COLLECTION_NAME = "shopping_list";
+const RANDOM_THOUGHTS_COLLECTION_NAME = "random_thoughts";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -17,6 +19,8 @@ declare global {
   var __trackerMiscTodosIndexesReady: Promise<void> | undefined;
   // eslint-disable-next-line no-var
   var __trackerShoppingListIndexesReady: Promise<void> | undefined;
+  // eslint-disable-next-line no-var
+  var __trackerRandomThoughtsIndexesReady: Promise<void> | undefined;
 }
 
 function getMongoClientPromise(): Promise<MongoClient> {
@@ -103,4 +107,24 @@ export async function ensureShoppingListIndexes(): Promise<void> {
   }
 
   await globalThis.__trackerShoppingListIndexesReady;
+}
+
+export async function getRandomThoughtsCollection(): Promise<Collection<RandomThoughtDbDocument>> {
+  const db = await getMongoDb();
+  return db.collection<RandomThoughtDbDocument>(RANDOM_THOUGHTS_COLLECTION_NAME);
+}
+
+export async function ensureRandomThoughtsIndexes(): Promise<void> {
+  if (!globalThis.__trackerRandomThoughtsIndexesReady) {
+    globalThis.__trackerRandomThoughtsIndexesReady = (async () => {
+      const collection = await getRandomThoughtsCollection();
+      await collection.createIndex({ createdAt: 1 });
+      await collection.createIndex({ isCompleted: 1, sortOrder: -1 });
+    })().catch((error) => {
+      globalThis.__trackerRandomThoughtsIndexesReady = undefined;
+      throw error;
+    });
+  }
+
+  await globalThis.__trackerRandomThoughtsIndexesReady;
 }
