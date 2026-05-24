@@ -1,3 +1,5 @@
+import type { ObjectId } from "mongodb";
+
 export interface RandomThought {
   id: string;
   content: string;
@@ -7,7 +9,7 @@ export interface RandomThought {
 }
 
 export interface RandomThoughtDbDocument {
-  _id: any; // ObjectId from MongoDB
+  _id?: ObjectId;
   content: string;
   isCompleted: boolean;
   sortOrder: number;
