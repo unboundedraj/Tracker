@@ -33,13 +33,14 @@ function dbToClient(doc: RandomThoughtDbDocument) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await ensureRandomThoughtsIndexes();
     let objectId;
     try {
-      objectId = new ObjectId(params.id);
+      objectId = new ObjectId(id);
     } catch {
       return NextResponse.json(
         { error: "Invalid thought ID format" },
@@ -91,13 +92,14 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await ensureRandomThoughtsIndexes();
     let objectId;
     try {
-      objectId = new ObjectId(params.id);
+      objectId = new ObjectId(id);
     } catch {
       return NextResponse.json(
         { error: "Invalid thought ID format" },
