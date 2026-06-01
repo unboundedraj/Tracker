@@ -79,6 +79,11 @@ function createDefaultDocument(monthKey: string, daysInMonth: number): HabitMont
   };
 }
 
+function looksLikeDefaultHabits(habits: Habit[] | undefined): boolean {
+  if (!Array.isArray(habits) || habits.length === 0) return false;
+  return habits.every((h, i) => h.id === `habit-${i + 1}` && /^Habit \d+$/.test(h.name));
+}
+
 function normalizeDocument(
   monthKey: string,
   daysInMonth: number,
@@ -318,10 +323,57 @@ export function useHabitMonth() {
 
       if (typeof navigator !== "undefined" && navigator.onLine) {
         try {
-          const serverDocument = await fetchHabitMonth(monthKey);
+          let serverDocument = await fetchHabitMonth(monthKey);
 
           if (cancelled) {
             return;
+          }
+
+          // If the server has no document for the requested month, or if
+          // the returned document only contains the generic placeholders
+          // (e.g. "Habit 1"...), try to seed habit names from the
+          // previous month so users see their real habit names.
+          if (!serverDocument) {
+            try {
+              const [yearPart, monthPart] = monthKey.split("-").map(Number);
+              let prevYear = yearPart;
+              let prevMonth = monthPart - 1;
+              if (prevMonth < 1) {
+                prevYear = yearPart - 1;
+                prevMonth = 12;
+              }
+              const prevMonthKey = `${prevYear}-${String(prevMonth).padStart(2, "0")}`;
+              const prevDoc = await fetchHabitMonth(prevMonthKey).catch(() => null);
+              if (prevDoc && Array.isArray(prevDoc.habits) && prevDoc.habits.length > 0) {
+                serverDocument = { ...(serverDocument ?? {}), habits: prevDoc.habits } as any;
+              }
+            } catch {
+              // ignore failures fetching previous month
+            }
+          }
+
+          // If the server returned a document but its habits look like the
+          // default placeholders, also try the previous month (covers the
+          // case where a saved doc had an empty `habits` array and the
+          // server normalized it to defaults).
+          const provisionalState = normalizeDocument(monthKey, daysInMonth, serverDocument ?? defaultDocument);
+          if (looksLikeDefaultHabits(provisionalState.habits)) {
+            try {
+              const [yearPart, monthPart] = monthKey.split("-").map(Number);
+              let prevYear = yearPart;
+              let prevMonth = monthPart - 1;
+              if (prevMonth < 1) {
+                prevYear = yearPart - 1;
+                prevMonth = 12;
+              }
+              const prevMonthKey = `${prevYear}-${String(prevMonth).padStart(2, "0")}`;
+              const prevDoc = await fetchHabitMonth(prevMonthKey).catch(() => null);
+              if (prevDoc && Array.isArray(prevDoc.habits) && prevDoc.habits.length > 0) {
+                serverDocument = { ...(serverDocument ?? {}), habits: prevDoc.habits } as any;
+              }
+            } catch {
+              // ignore failures fetching previous month
+            }
           }
 
           const serverState = normalizeDocument(monthKey, daysInMonth, serverDocument ?? defaultDocument);
