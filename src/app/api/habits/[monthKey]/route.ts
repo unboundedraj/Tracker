@@ -93,7 +93,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       { monthKey },
       {
         $set: normalizedForUpdate,
-        $setOnInsert: { monthKey, monthStart: normalized.monthStart },
+        $setOnInsert: { monthKey, monthStart: new Date(normalized.monthStart) },
       },
       { upsert: true },
     );
