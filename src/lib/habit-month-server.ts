@@ -119,16 +119,16 @@ export async function resolveHabitMonthDocument(
       : null;
 
   if (clientDocument?.habits && !looksLikeDefaultHabits(clientDocument.habits)) {
-    return normalizeHabitMonthDocument(monthKey, clientDocument);
+    return dbDocumentToClientDocument(normalizeHabitMonthDocument(monthKey, clientDocument));
   }
 
   const seedHabits = await findSeedHabits(collection, monthKey);
   if (seedHabits && seedHabits.length > 0) {
-    return normalizeHabitMonthDocument(monthKey, {
+    return dbDocumentToClientDocument(normalizeHabitMonthDocument(monthKey, {
       ...(clientDocument ?? {}),
       habits: seedHabits,
-    });
+    }));
   }
 
-  return normalizeHabitMonthDocument(monthKey, clientDocument);
+  return dbDocumentToClientDocument(normalizeHabitMonthDocument(monthKey, clientDocument));
 }

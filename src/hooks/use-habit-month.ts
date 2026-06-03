@@ -349,30 +349,6 @@ export function useHabitMonth(initialDocument?: HabitMonthDocument | null) {
             }
           }
 
-          // If the server returned a document but its habits look like the
-          // default placeholders, also try the previous month (covers the
-          // case where a saved doc had an empty `habits` array and the
-          // server normalized it to defaults).
-          const provisionalState = normalizeDocument(monthKey, daysInMonth, serverDocument ?? defaultDocument);
-          if (looksLikeDefaultHabits(provisionalState.habits)) {
-            try {
-              const [yearPart, monthPart] = monthKey.split("-").map(Number);
-              let prevYear = yearPart;
-              let prevMonth = monthPart - 1;
-              if (prevMonth < 1) {
-                prevYear = yearPart - 1;
-                prevMonth = 12;
-              }
-              const prevMonthKey = `${prevYear}-${String(prevMonth).padStart(2, "0")}`;
-              const prevDoc = await fetchHabitMonth(prevMonthKey).catch(() => null);
-              if (prevDoc && Array.isArray(prevDoc.habits) && prevDoc.habits.length > 0) {
-                serverDocument = { ...(serverDocument ?? {}), habits: prevDoc.habits } as any;
-              }
-            } catch {
-              // ignore failures fetching previous month
-            }
-          }
-
           const serverState = normalizeDocument(monthKey, daysInMonth, serverDocument ?? defaultDocument);
           const mergedDocument = applyOperations(serverState, pendingOperations);
 
