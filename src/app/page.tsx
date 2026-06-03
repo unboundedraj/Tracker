@@ -5,8 +5,16 @@ import ShoppingListButton from "@/components/common/shopping-list-button";
 import RandomThoughtsButton from "@/components/common/random-thoughts-button";
 import { orbitron } from "@/lib/fonts";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { AUTH_COOKIE_NAME } from "@/lib/auth";
+import { getMonthKey } from "@/utils/date";
+import { resolveHabitMonthDocument } from "@/lib/habit-month-server";
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const isAuthenticated = cookieStore.get(AUTH_COOKIE_NAME)?.value === "1";
+  const initialHabitMonth = isAuthenticated ? await resolveHabitMonthDocument(getMonthKey(new Date())) : null;
+
   return (
     <AppShell>
       <div className="habit-page">
@@ -23,7 +31,7 @@ export default function Home() {
             <RandomThoughtsButton />
           </div>
         </section>
-        <HabitTracker />
+        <HabitTracker initialDocument={initialHabitMonth} />
       </div>
     </AppShell>
   );

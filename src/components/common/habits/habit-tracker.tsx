@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useHabitMonth } from "@/hooks/use-habit-month";
-import type { HabitId } from "@/types/habits";
+import type { HabitId, HabitMonthDocument } from "@/types/habits";
 import { countOnes } from "@/utils/bitstring";
 import { getMonthWeekColumns } from "@/utils/date";
 import { CircularProgress } from "@/components/ui/circular-progress";
@@ -83,8 +83,12 @@ function isRenamedHabit(habitId: HabitId, habitName: string): boolean {
   return habitName.trim() !== defaultName;
 }
 
-export function HabitTracker() {
-  const { state, today, toggleHabitDay, renameHabit, syncStatus, syncMessage, mounted, reorderHabits } = useHabitMonth();
+type HabitTrackerProps = {
+  initialDocument?: HabitMonthDocument | null;
+};
+
+export function HabitTracker({ initialDocument }: HabitTrackerProps) {
+  const { state, today, toggleHabitDay, renameHabit, syncStatus, syncMessage, mounted, reorderHabits } = useHabitMonth(initialDocument);
   const [draggedHabitId, setDraggedHabitId] = useState<HabitId | null>(null);
   
   // Derive month/year from the state's monthKey instead of new Date() to ensure SSR consistency

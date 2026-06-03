@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
-import { ensureHabitMonthsIndexes, getHabitMonthsCollection } from "@/lib/mongodb";
-import type { Habit, HabitMonthDbDocument, HabitMonthDocument, HabitMonthRecord } from "@/types/habits";
-import { createBitstring, isBitstring } from "@/utils/bitstring";
-import { getDaysInMonthFromMonthKey, getMonthStartDateFromMonthKey } from "@/utils/date";
+import type { HabitMonthDocument } from "@/types/habits";
+import { getHabitMonthsCollection } from "@/lib/mongodb";
+import { resolveHabitMonthDocument } from "@/lib/habit-month-server";
 
 export const runtime = "nodejs";
 
@@ -45,64 +44,6 @@ function friendlyMongoMessage(error: unknown): string {
   return message;
 }
 
-function createDefaultHabitRecords(monthKey: string, daysInMonth: number): Record<string, HabitMonthRecord> {
-  const records: Record<string, HabitMonthRecord> = {};
-
-  for (let index = 1; index <= 30; index += 1) {
-    const habitId = `habit-${index}`;
-    records[habitId] = {
-      habitId,
-      monthKey,
-      daysInMonth,
-      checks: createBitstring(daysInMonth, "0"),
-      updatedAt: new Date().toISOString(),
-    };
-  }
-
-  return records;
-}
-
-function createDefaultHabits(): Habit[] {
-  return Array.from({ length: 30 }, (_, index) => ({
-    id: `habit-${index + 1}`,
-    name: `Habit ${index + 1}`,
-  }));
-}
-
-function normalizeDocument(monthKey: string, document?: Partial<HabitMonthDocument> | null): HabitMonthDbDocument {
-  const monthStart = getMonthStartDateFromMonthKey(monthKey);
-  const daysInMonth = getDaysInMonthFromMonthKey(monthKey);
-  const habits = Array.isArray(document?.habits) && document.habits.length > 0 ? document.habits : createDefaultHabits();
-  const recordsByHabitId = document?.recordsByHabitId ?? createDefaultHabitRecords(monthKey, daysInMonth);
-
-  const normalizedRecords: Record<string, HabitMonthRecord> = {};
-
-  for (const habit of habits) {
-    const record = recordsByHabitId[habit.id];
-    const checks = record?.checks;
-
-    normalizedRecords[habit.id] = {
-      habitId: habit.id,
-      monthKey,
-      daysInMonth,
-      checks:
-        typeof checks === "string" && isBitstring(checks, daysInMonth)
-          ? checks
-          : createBitstring(daysInMonth, "0"),
-      updatedAt: record?.updatedAt ?? new Date().toISOString(),
-    };
-  }
-
-  return {
-    monthKey,
-    monthStart,
-    daysInMonth,
-    habits,
-    recordsByHabitId: normalizedRecords,
-    updatedAt: document?.updatedAt ?? new Date().toISOString(),
-  };
-}
-
 export async function GET(_request: NextRequest, context: RouteContext) {
   if (!isAuthenticated(_request)) {
     return NextResponse.json({ document: null, message: "Unauthorized. Please unlock the app again." }, { status: 401 });
@@ -111,28 +52,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   const { monthKey } = await context.params;
 
   try {
-    await ensureHabitMonthsIndexes();
-    const collection = await getHabitMonthsCollection();
-    const dbDocument = await collection.findOne({ monthKey });
-
-    // Convert mongoDocument to client format (Date to ISO string) before normalization
-    const clientDocument: Partial<HabitMonthDocument> | null = dbDocument
-      ? {
-          ...dbDocument,
-          monthStart: dbDocument.monthStart instanceof Date
-            ? dbDocument.monthStart.toISOString()
-            : dbDocument.monthStart,
-        }
-      : null;
-
-    // Normalize the document to ensure it has the correct structure
-    const normalizedDocument = normalizeDocument(monthKey, clientDocument);
-
-    // Convert the Date back to ISO string for the response
-    const responseDocument: HabitMonthDocument = {
-      ...normalizedDocument,
-      monthStart: normalizedDocument.monthStart.toISOString(),
-    };
+    const responseDocument = await resolveHabitMonthDocument(monthKey);
 
     return NextResponse.json({ document: responseDocument ?? null });
   } catch (error) {
@@ -159,12 +79,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ document: null, message: "Invalid request." }, { status: 400 });
   }
 
-  const normalized = normalizeDocument(monthKey, body.document ?? null);
-
   try {
-    await ensureHabitMonthsIndexes();
     const collection = await getHabitMonthsCollection();
-
+    const normalized = await resolveHabitMonthDocument(monthKey, body.document ?? null);
     const normalizedForUpdate = {
       daysInMonth: normalized.daysInMonth,
       habits: normalized.habits,
@@ -183,7 +100,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     const savedDocument = await collection.findOne({ monthKey });
 
-    // Convert the Date back to ISO string for the response
     const responseDocument: HabitMonthDocument | null = savedDocument
       ? {
           ...savedDocument,

@@ -91,6 +91,8 @@ npm run lint
 8. Redesigned miscellaneous todos into priority lanes with draggable, persisted ordering and a solid modal surface.
 9. Added Shopping List with a draggable active/completed list, strike-off capability, and MongoDB persistence.
 10. Added Random Thoughts with a draggable active/archived list, strike-off capability, and MongoDB persistence.
+11. Moved habit month seeding to the server so new months inherit the latest real habit names instead of showing placeholder defaults first.
+12. Preloaded the current month habit document into the page render path to remove the client-side flash of "Habit 1 / Habit 2" on load and after saves.
 
 ## Evolution
 

@@ -79,11 +79,6 @@ function createDefaultDocument(monthKey: string, daysInMonth: number): HabitMont
   };
 }
 
-function looksLikeDefaultHabits(habits: Habit[] | undefined): boolean {
-  if (!Array.isArray(habits) || habits.length === 0) return false;
-  return habits.every((h, i) => h.id === `habit-${i + 1}` && /^Habit \d+$/.test(h.name));
-}
-
 function normalizeDocument(
   monthKey: string,
   daysInMonth: number,
@@ -229,14 +224,16 @@ function setSnapshot(document: HabitMonthDocument): void {
   persistSnapshot(document);
 }
 
-export function useHabitMonth() {
+export function useHabitMonth(initialDocument?: HabitMonthDocument | null) {
   const now = useMemo(() => new Date(), []);
   const monthKey = useMemo(() => getMonthKey(now), [now]);
   const daysInMonth = useMemo(() => getDaysInMonth(now), [now]);
   const today = useMemo(() => getDayOfMonth(now), [now]);
 
   const defaultDocument = useMemo(() => createDefaultDocument(monthKey, daysInMonth), [daysInMonth, monthKey]);
-  const [document, setDocument] = useState<HabitMonthDocument>(() => readSnapshot(monthKey, daysInMonth) ?? defaultDocument);
+  const [document, setDocument] = useState<HabitMonthDocument>(
+    () => readSnapshot(monthKey, daysInMonth) ?? initialDocument ?? defaultDocument,
+  );
   const [syncStatus, setSyncStatus] = useState<HabitSyncStatus>("synced");
   const [syncError, setSyncError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -401,8 +398,8 @@ export function useHabitMonth() {
         }
       }
 
-      const initialDocument = localSnapshot ?? defaultDocument;
-      const localDocument = applyOperations(initialDocument, pendingOperations);
+      const initialLocalDocument = localSnapshot ?? initialDocument ?? defaultDocument;
+      const localDocument = applyOperations(initialLocalDocument, pendingOperations);
 
       documentRef.current = localDocument;
       setDocument(localDocument);
