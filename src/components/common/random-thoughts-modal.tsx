@@ -134,7 +134,7 @@ export default function RandomThoughtsModal({ isOpen, onClose }: Props) {
   const completedThoughts = thoughts.filter((t) => t.isCompleted);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="random-thoughts-backdrop">
       <div className="random-thoughts-wrapper">
         <div className="random-thoughts-header">
           <h2 className="random-thoughts-title">💭 Random Thoughts</h2>

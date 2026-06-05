@@ -93,6 +93,7 @@ npm run lint
 10. Added Random Thoughts with a draggable active/archived list, strike-off capability, and MongoDB persistence.
 11. Moved habit month seeding to the server so new months inherit the latest real habit names instead of showing placeholder defaults first.
 12. Preloaded the current month habit document into the page render path to remove the client-side flash of "Habit 1 / Habit 2" on load and after saves.
+13. Rethemed the Random Thoughts modal to match the app-wide neutral light/dark design language, removing purple-specific styling.
 
 ## Evolution
 

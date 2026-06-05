@@ -2489,22 +2489,27 @@ html[data-theme='dark'] .shopping-list-cancel:hover:not(:disabled) {
 }
 
 /* Random Thoughts Styles */
-.random-thoughts-wrapper {
+.random-thoughts-backdrop {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 500px;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(var(--ink-rgb), 0.32);
+  backdrop-filter: blur(6px);
+}
+
+.random-thoughts-wrapper {
+  width: min(100%, 640px);
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  border-radius: 16px;
-  background: rgba(var(--paper-rgb), 0.98);
-  border: 1px solid rgba(var(--ink-rgb), 0.12);
-  box-shadow: 0 24px 60px rgba(var(--ink-rgb), 0.16);
+  border-radius: 24px;
+  background: rgba(var(--paper-rgb), 0.96);
+  border: 1px solid rgba(var(--ink-rgb), 0.1);
+  box-shadow: 0 32px 80px rgba(var(--ink-rgb), 0.18);
   overflow: hidden;
-  z-index: 60;
   animation: slideIn 200ms ease-out;
 }
 
@@ -2521,30 +2526,30 @@ html[data-theme='dark'] .shopping-list-cancel:hover:not(:disabled) {
 
 html[data-theme='dark'] .random-thoughts-wrapper {
   background: rgba(10, 12, 14, 0.96);
-  border-color: rgba(236, 242, 248, 0.12);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  border-color: rgba(236, 242, 248, 0.1);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
 }
 
 .random-thoughts-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 28px;
-  border-bottom: 2px solid rgba(147, 51, 234, 0.2);
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%);
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.08);
 }
 
 html[data-theme='dark'] .random-thoughts-header {
-  border-bottom-color: rgba(168, 85, 247, 0.2);
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.12) 0%, rgba(168, 85, 247, 0.06) 100%);
+  border-bottom-color: rgba(236, 242, 248, 0.08);
 }
 
 .random-thoughts-title {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: rgba(var(--ink-rgb), 0.92);
-  letter-spacing: -0.02em;
 }
 
 html[data-theme='dark'] .random-thoughts-title {
@@ -2554,39 +2559,41 @@ html[data-theme='dark'] .random-thoughts-title {
 .random-thoughts-close-btn {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  border: 1px solid rgba(var(--ink-rgb), 0.1);
-  background: rgba(var(--ink-rgb), 0.04);
-  color: rgba(var(--ink-rgb), 0.6);
-  border-radius: 8px;
+  border: 1px solid rgba(var(--ink-rgb), 0.18);
+  background: rgba(var(--paper-rgb), 0.92);
+  color: rgba(var(--ink-rgb), 0.78);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 160ms ease;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
+  font-weight: 900;
 }
 
 html[data-theme='dark'] .random-thoughts-close-btn {
-  border-color: rgba(236, 242, 248, 0.1);
-  background: rgba(236, 242, 248, 0.04);
-  color: rgba(236, 242, 248, 0.6);
+  border-color: rgba(236, 242, 248, 0.18);
+  background: rgba(10, 12, 14, 0.6);
+  color: rgba(236, 242, 248, 0.78);
 }
 
 .random-thoughts-close-btn:hover {
-  background: rgba(147, 51, 234, 0.12);
-  border-color: rgba(147, 51, 234, 0.3);
-  color: rgba(147, 51, 234, 0.8);
+  transform: translateY(-1px);
+  background: rgba(var(--ink-rgb), 0.08);
+  border-color: rgba(var(--ink-rgb), 0.32);
+  color: rgba(var(--ink-rgb), 0.92);
 }
 
 html[data-theme='dark'] .random-thoughts-close-btn:hover {
-  background: rgba(147, 51, 234, 0.15);
-  border-color: rgba(147, 51, 234, 0.3);
-  color: rgba(168, 85, 247, 0.9);
+  border-color: rgba(236, 242, 248, 0.32);
+  background: rgba(236, 242, 248, 0.08);
+  color: rgba(236, 242, 248, 0.92);
 }
 
 .random-thoughts-error {
   padding: 16px 28px;
-  border-bottom: 1px solid rgba(var(--ink-rgb), 0.12);
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
   background: rgba(220, 38, 38, 0.08);
   color: rgba(220, 38, 38, 0.9);
   font-weight: 500;
@@ -2602,9 +2609,9 @@ html[data-theme='dark'] .random-thoughts-error {
 }
 
 .random-thoughts-loading {
-  padding: 40px 24px;
+  padding: 32px 24px;
   text-align: center;
-  color: rgba(var(--ink-rgb), 0.6);
+  color: rgba(var(--ink-rgb), 0.62);
 }
 
 html[data-theme='dark'] .random-thoughts-loading {
@@ -2612,7 +2619,7 @@ html[data-theme='dark'] .random-thoughts-loading {
 }
 
 .random-thoughts-section {
-  padding: 24px 28px;
+  padding: 16px;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.08);
   overflow-y: auto;
 }
@@ -2626,19 +2633,19 @@ html[data-theme='dark'] .random-thoughts-section {
 }
 
 .random-thoughts-section-header {
-  margin: 0 0 16px 0;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(147, 51, 234, 0.8);
+  color: rgba(var(--ink-rgb), 0.78);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 html[data-theme='dark'] .random-thoughts-section-header {
-  color: rgba(168, 85, 247, 0.9);
+  color: rgba(236, 242, 248, 0.78);
 }
 
 .random-thoughts-lane {
@@ -2652,15 +2659,15 @@ html[data-theme='dark'] .random-thoughts-section-header {
   text-align: center;
   color: rgba(var(--ink-rgb), 0.52);
   font-size: 0.95rem;
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.04) 0%, rgba(168, 85, 247, 0.02) 100%);
+  background: rgba(var(--ink-rgb), 0.03);
   border-radius: 12px;
-  border: 2px dashed rgba(147, 51, 234, 0.2);
+  border: 1px dashed rgba(var(--ink-rgb), 0.2);
 }
 
 html[data-theme='dark'] .random-thoughts-empty-state {
   color: rgba(236, 242, 248, 0.52);
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.06) 0%, rgba(168, 85, 247, 0.03) 100%);
-  border-color: rgba(147, 51, 234, 0.25);
+  background: rgba(236, 242, 248, 0.05);
+  border-color: rgba(236, 242, 248, 0.22);
 }
 
 .random-thoughts-item {
@@ -2669,8 +2676,8 @@ html[data-theme='dark'] .random-thoughts-empty-state {
   gap: 12px;
   padding: 14px 16px;
   border: 1px solid rgba(var(--ink-rgb), 0.1);
-  border-radius: 10px;
-  background: rgba(147, 51, 234, 0.02);
+  border-radius: 12px;
+  background: rgba(var(--paper-rgb), 0.82);
   transition: all 160ms ease;
   cursor: grab;
   box-shadow: 0 2px 4px rgba(var(--ink-rgb), 0.04);
@@ -2678,19 +2685,19 @@ html[data-theme='dark'] .random-thoughts-empty-state {
 
 html[data-theme='dark'] .random-thoughts-item {
   border-color: rgba(236, 242, 248, 0.12);
-  background: rgba(147, 51, 234, 0.08);
+  background: rgba(10, 12, 14, 0.72);
 }
 
 .random-thoughts-item:hover {
-  background: rgba(147, 51, 234, 0.06);
-  border-color: rgba(147, 51, 234, 0.3);
-  box-shadow: 0 4px 8px rgba(147, 51, 234, 0.12);
+  background: rgba(var(--ink-rgb), 0.06);
+  border-color: rgba(var(--ink-rgb), 0.2);
+  box-shadow: 0 6px 14px rgba(var(--ink-rgb), 0.1);
 }
 
 html[data-theme='dark'] .random-thoughts-item:hover {
-  background: rgba(147, 51, 234, 0.12);
-  border-color: rgba(147, 51, 234, 0.4);
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.2);
+  background: rgba(236, 242, 248, 0.08);
+  border-color: rgba(236, 242, 248, 0.24);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
 }
 
 .random-thoughts-item:active {
@@ -2700,7 +2707,7 @@ html[data-theme='dark'] .random-thoughts-item:hover {
 .random-thoughts-item--dragging {
   opacity: 0.65;
   transform: scale(0.98);
-  box-shadow: 0 12px 30px rgba(147, 51, 234, 0.2);
+  box-shadow: 0 12px 30px rgba(var(--ink-rgb), 0.2);
 }
 
 .random-thoughts-item--completed {
@@ -2728,8 +2735,8 @@ html[data-theme='dark'] .random-thoughts-item--completed .random-thoughts-item-t
   height: 24px;
   min-width: 24px;
   padding: 0;
-  border: 2px solid rgba(147, 51, 234, 0.4);
-  background: transparent;
+  border: 2px solid var(--checkbox-border);
+  background: var(--checkbox-bg);
   border-radius: 50%;
   cursor: pointer;
   transition: all 160ms ease;
@@ -2738,28 +2745,13 @@ html[data-theme='dark'] .random-thoughts-item--completed .random-thoughts-item-t
   -moz-appearance: none;
 }
 
-html[data-theme='dark'] .random-thoughts-checkbox {
-  border-color: rgba(168, 85, 247, 0.4);
-}
-
 .random-thoughts-checkbox:hover {
-  background: rgba(147, 51, 234, 0.1);
-  border-color: rgba(147, 51, 234, 0.7);
-}
-
-html[data-theme='dark'] .random-thoughts-checkbox:hover {
-  background: rgba(147, 51, 234, 0.15);
-  border-color: rgba(168, 85, 247, 0.7);
+  border-color: rgba(var(--ink-rgb), 0.7);
 }
 
 .random-thoughts-checkbox:checked {
-  background: rgba(147, 51, 234, 0.2);
-  border-color: rgba(147, 51, 234, 0.8);
-}
-
-html[data-theme='dark'] .random-thoughts-checkbox:checked {
-  background: rgba(147, 51, 234, 0.25);
-  border-color: rgba(168, 85, 247, 0.8);
+  background: rgba(var(--ink-rgb), 0.16);
+  border-color: rgba(var(--ink-rgb), 0.72);
 }
 
 .random-thoughts-item-text {
@@ -2812,23 +2804,23 @@ html[data-theme='dark'] .random-thoughts-delete-btn:hover {
 .random-thoughts-form {
   display: grid;
   gap: 12px;
-  padding: 20px 28px;
-  border-top: 2px solid rgba(147, 51, 234, 0.15);
-  background: linear-gradient(to bottom, rgba(147, 51, 234, 0.03) 0%, rgba(168, 85, 247, 0.01) 100%);
+  padding: 16px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+  background: rgba(var(--paper-rgb), 0.78);
 }
 
 html[data-theme='dark'] .random-thoughts-form {
-  border-top-color: rgba(168, 85, 247, 0.2);
-  background: linear-gradient(to bottom, rgba(147, 51, 234, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%);
+  border-top-color: rgba(236, 242, 248, 0.08);
+  background: rgba(10, 12, 14, 0.72);
 }
 
 .random-thoughts-input {
   width: 100%;
   min-height: 48px;
   padding: 12px 16px;
-  border: 1.5px solid rgba(147, 51, 234, 0.3);
+  border: 1px solid rgba(var(--ink-rgb), 0.16);
   border-radius: 10px;
-  background: rgba(var(--paper-rgb), 0.95);
+  background: rgba(var(--paper-rgb), 0.88);
   color: var(--foreground);
   font: inherit;
   font-weight: 500;
@@ -2837,7 +2829,7 @@ html[data-theme='dark'] .random-thoughts-form {
 }
 
 html[data-theme='dark'] .random-thoughts-input {
-  border-color: rgba(168, 85, 247, 0.3);
+  border-color: rgba(236, 242, 248, 0.2);
   background: rgba(10, 12, 14, 0.6);
   color: rgba(236, 242, 248, 0.92);
 }
@@ -2851,14 +2843,14 @@ html[data-theme='dark'] .random-thoughts-input::placeholder {
 }
 
 .random-thoughts-input:focus {
-  border-color: rgba(147, 51, 234, 0.7);
-  box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.15);
+  border-color: rgba(var(--ink-rgb), 0.42);
+  box-shadow: 0 0 0 4px rgba(var(--ink-rgb), 0.1);
   background: rgba(var(--paper-rgb), 0.98);
 }
 
 html[data-theme='dark'] .random-thoughts-input:focus {
-  border-color: rgba(168, 85, 247, 0.7);
-  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15);
+  border-color: rgba(236, 242, 248, 0.4);
+  box-shadow: 0 0 0 4px rgba(236, 242, 248, 0.12);
 }
 
 .random-thoughts-input:disabled {
@@ -2869,10 +2861,10 @@ html[data-theme='dark'] .random-thoughts-input:focus {
 .random-thoughts-submit {
   min-height: 44px;
   padding: 10px 16px;
-  border: 2px solid rgba(147, 51, 234, 0.5);
+  border: 1px solid rgba(var(--ink-rgb), 0.2);
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
-  color: rgba(147, 51, 234, 0.95);
+  background: rgba(var(--ink-rgb), 0.08);
+  color: rgba(var(--ink-rgb), 0.92);
   font: inherit;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -2881,22 +2873,22 @@ html[data-theme='dark'] .random-thoughts-input:focus {
 }
 
 html[data-theme='dark'] .random-thoughts-submit {
-  border-color: rgba(168, 85, 247, 0.5);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(147, 51, 234, 0.15) 100%);
-  color: rgba(196, 181, 253, 0.95);
+  border-color: rgba(236, 242, 248, 0.2);
+  background: rgba(236, 242, 248, 0.1);
+  color: rgba(236, 242, 248, 0.92);
 }
 
 .random-thoughts-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.25) 0%, rgba(168, 85, 247, 0.2) 100%);
-  border-color: rgba(147, 51, 234, 0.8);
-  box-shadow: 0 6px 16px rgba(147, 51, 234, 0.2);
+  background: rgba(var(--ink-rgb), 0.16);
+  border-color: rgba(var(--ink-rgb), 0.32);
+  box-shadow: 0 6px 16px rgba(var(--ink-rgb), 0.16);
 }
 
 html[data-theme='dark'] .random-thoughts-submit:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(147, 51, 234, 0.25) 100%);
-  border-color: rgba(168, 85, 247, 0.8);
-  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.2);
+  background: rgba(236, 242, 248, 0.18);
+  border-color: rgba(236, 242, 248, 0.36);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
 }
 
 .random-thoughts-submit:active:not(:disabled) {
