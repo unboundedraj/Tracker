@@ -94,6 +94,8 @@ npm run lint
 11. Moved habit month seeding to the server so new months inherit the latest real habit names instead of showing placeholder defaults first.
 12. Preloaded the current month habit document into the page render path to remove the client-side flash of "Habit 1 / Habit 2" on load and after saves.
 13. Rethemed the Random Thoughts modal to match the app-wide neutral light/dark design language, removing purple-specific styling.
+14. Added Today's Agenda with MongoDB-backed task curation and automatic task expiry 24 hours after creation.
+15. Added completion tracking and a Chart.js circular progress chart in Today's Agenda to visualize percent of active tasks done.
 
 ## Evolution
 

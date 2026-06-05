@@ -3,6 +3,7 @@ import { HabitTracker } from "@/components/common/habits/habit-tracker";
 import { MiscellaneousTodosButton } from "@/components/common/misc-todos-button";
 import ShoppingListButton from "@/components/common/shopping-list-button";
 import RandomThoughtsButton from "@/components/common/random-thoughts-button";
+import TodaysAgendaButton from "@/components/common/todays-agenda-button";
 import { orbitron } from "@/lib/fonts";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -23,6 +24,7 @@ export default async function Home() {
         </div>
         <section className="habit-page__feature-bar" aria-label="Tools and features">
           <div className="habit-page__feature-bar-inner">
+            <TodaysAgendaButton />
             <Link href="/focus" className={`focus-mode-button ${orbitron.className}`}>
               Focus Mode
             </Link>

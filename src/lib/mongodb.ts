@@ -3,12 +3,14 @@ import type { HabitMonthDbDocument } from "@/types/habits";
 import type { MiscTodoDbDocument } from "@/types/misc-todos";
 import type { ShoppingItemDbDocument } from "@/types/shopping-list";
 import type { RandomThoughtDbDocument } from "@/types/random-thoughts";
+import type { TodaysAgendaItemDbDocument } from "@/types/todays-agenda";
 
 const DATABASE_NAME = process.env.MONGODB_DB ?? "tracker";
 const COLLECTION_NAME = process.env.MONGODB_COLLECTION ?? "habit_months";
 const MISC_TODOS_COLLECTION_NAME = "misc_todos";
 const SHOPPING_LIST_COLLECTION_NAME = "shopping_list";
 const RANDOM_THOUGHTS_COLLECTION_NAME = "random_thoughts";
+const TODAYS_AGENDA_COLLECTION_NAME = "todays_agenda";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -21,6 +23,8 @@ declare global {
   var __trackerShoppingListIndexesReady: Promise<void> | undefined;
   // eslint-disable-next-line no-var
   var __trackerRandomThoughtsIndexesReady: Promise<void> | undefined;
+  // eslint-disable-next-line no-var
+  var __trackerTodaysAgendaIndexesReady: Promise<void> | undefined;
 }
 
 function getMongoClientPromise(): Promise<MongoClient> {
@@ -127,4 +131,24 @@ export async function ensureRandomThoughtsIndexes(): Promise<void> {
   }
 
   await globalThis.__trackerRandomThoughtsIndexesReady;
+}
+
+export async function getTodaysAgendaCollection(): Promise<Collection<TodaysAgendaItemDbDocument>> {
+  const db = await getMongoDb();
+  return db.collection<TodaysAgendaItemDbDocument>(TODAYS_AGENDA_COLLECTION_NAME);
+}
+
+export async function ensureTodaysAgendaIndexes(): Promise<void> {
+  if (!globalThis.__trackerTodaysAgendaIndexesReady) {
+    globalThis.__trackerTodaysAgendaIndexesReady = (async () => {
+      const collection = await getTodaysAgendaCollection();
+      await collection.createIndex({ createdAt: -1 });
+      await collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    })().catch((error) => {
+      globalThis.__trackerTodaysAgendaIndexesReady = undefined;
+      throw error;
+    });
+  }
+
+  await globalThis.__trackerTodaysAgendaIndexesReady;
 }
