@@ -96,6 +96,7 @@ npm run lint
 13. Rethemed the Random Thoughts modal to match the app-wide neutral light/dark design language, removing purple-specific styling.
 14. Added Today's Agenda with MongoDB-backed task curation and automatic task expiry 24 hours after creation.
 15. Added completion tracking and a Chart.js circular progress chart in Today's Agenda to visualize percent of active tasks done.
+16. Added Monthly Export Report — a top-right button that opens a modal summarising the current month's habit progress with key stats (overall rate, total checks, perfect days, streak), most consistent and most neglected habit highlights, a completion doughnut chart, a per-habit horizontal bar chart, dynamically generated key insights, and a one-click download that captures the entire report as a PNG image.
 
 ## Evolution
 
