@@ -11,6 +11,7 @@ const MISC_TODOS_COLLECTION_NAME = "misc_todos";
 const SHOPPING_LIST_COLLECTION_NAME = "shopping_list";
 const RANDOM_THOUGHTS_COLLECTION_NAME = "random_thoughts";
 const TODAYS_AGENDA_COLLECTION_NAME = "todays_agenda";
+const USER_SETTINGS_COLLECTION_NAME = "user_settings";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -131,6 +132,17 @@ export async function ensureRandomThoughtsIndexes(): Promise<void> {
   }
 
   await globalThis.__trackerRandomThoughtsIndexesReady;
+}
+
+export type UserSettingsDoc = {
+  settingsKey: "global";
+  birthDate: string | null;
+  updatedAt: string;
+};
+
+export async function getUserSettingsCollection(): Promise<Collection<UserSettingsDoc>> {
+  const db = await getMongoDb();
+  return db.collection<UserSettingsDoc>(USER_SETTINGS_COLLECTION_NAME);
 }
 
 export async function getTodaysAgendaCollection(): Promise<Collection<TodaysAgendaItemDbDocument>> {

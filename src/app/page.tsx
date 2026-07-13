@@ -3,6 +3,7 @@ import { HabitTracker } from "@/components/common/habits/habit-tracker";
 import { MiscellaneousTodosButton } from "@/components/common/misc-todos-button";
 import ShoppingListButton from "@/components/common/shopping-list-button";
 import RandomThoughtsButton from "@/components/common/random-thoughts-button";
+import LifeWeeksButton from "@/components/common/life-weeks-button";
 import TodaysAgendaButton from "@/components/common/todays-agenda-button";
 import { orbitron } from "@/lib/fonts";
 import Link from "next/link";
@@ -31,6 +32,7 @@ export default async function Home() {
             <MiscellaneousTodosButton />
             <ShoppingListButton />
             <RandomThoughtsButton />
+            <LifeWeeksButton />
           </div>
         </section>
         <HabitTracker initialDocument={initialHabitMonth} />
