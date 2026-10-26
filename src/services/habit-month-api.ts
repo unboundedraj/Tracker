@@ -72,3 +72,19 @@ export async function saveHabitMonth(document: HabitMonthDocument): Promise<Habi
 
   return payload.document;
 }
+
+export async function resetHabitMonth(monthKey: string): Promise<HabitMonthDocument> {
+  const response = await fetchWithTimeout(`/api/habits/${monthKey}`, {
+    method: "POST",
+    cache: "no-store",
+    credentials: "include",
+  });
+
+  const payload = await parseResponse(response);
+
+  if (!payload.document) {
+    throw new Error("Month reset response did not include a document.");
+  }
+
+  return payload.document;
+}

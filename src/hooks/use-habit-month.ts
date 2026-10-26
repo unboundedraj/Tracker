@@ -396,6 +396,25 @@ export function useHabitMonth(initialDocument?: HabitMonthDocument | null) {
     };
   }, [defaultDocument, daysInMonth, flushPendingOperations, monthKey]);
 
+  useEffect(() => {
+    const handleReset = (event: Event) => {
+      const document = (event as CustomEvent<HabitMonthDocument>).detail;
+      if (!document || document.monthKey !== monthKey) {
+        return;
+      }
+
+      persistPendingOperations(monthKey, []);
+      documentRef.current = document;
+      setDocument(document);
+      setSnapshot(document);
+      setSyncStatus("synced");
+      setSyncError(null);
+    };
+
+    window.addEventListener("tracker:habit-month-reset", handleReset);
+    return () => window.removeEventListener("tracker:habit-month-reset", handleReset);
+  }, [monthKey]);
+
   const state = useMemo<HabitMonthState>(
     () => ({
       monthKey: document.monthKey,

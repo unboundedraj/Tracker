@@ -39,6 +39,19 @@ function createDefaultRecords(monthKey: string, daysInMonth: number, habits: Hab
   return records;
 }
 
+export function createDefaultHabitMonthDocument(monthKey: string): HabitMonthDocument {
+  const daysInMonth = getDaysInMonthFromMonthKey(monthKey);
+  const habits = createDefaultHabits();
+  return {
+    monthKey,
+    monthStart: getMonthStartDateFromMonthKey(monthKey).toISOString(),
+    daysInMonth,
+    habits,
+    recordsByHabitId: createDefaultRecords(monthKey, daysInMonth, habits),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 function normalizeHabitMonthDocument(monthKey: string, document?: Partial<HabitMonthDocument> | null): HabitMonthDbDocument {
   const monthStart = getMonthStartDateFromMonthKey(monthKey);
   const daysInMonth = getDaysInMonthFromMonthKey(monthKey);

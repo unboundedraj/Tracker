@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
 import type { HabitMonthDocument } from "@/types/habits";
 import { getHabitMonthsCollection } from "@/lib/mongodb";
-import { resolveHabitMonthDocument } from "@/lib/habit-month-server";
+import { createDefaultHabitMonthDocument, resolveHabitMonthDocument } from "@/lib/habit-month-server";
 
 export const runtime = "nodejs";
 
@@ -112,6 +112,40 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ document: responseDocument });
   } catch (error) {
     console.error("[api/habits] PUT failed", error);
+    return NextResponse.json(
+      { document: null, message: friendlyMongoMessage(error) },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(request: NextRequest, context: RouteContext) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ document: null, message: "Unauthorized. Please unlock the app again." }, { status: 401 });
+  }
+
+  const { monthKey } = await context.params;
+
+  try {
+    const collection = await getHabitMonthsCollection();
+    const resetDocument = createDefaultHabitMonthDocument(monthKey);
+    await collection.updateOne(
+      { monthKey },
+      {
+        $set: {
+          daysInMonth: resetDocument.daysInMonth,
+          habits: resetDocument.habits,
+          recordsByHabitId: resetDocument.recordsByHabitId,
+          updatedAt: resetDocument.updatedAt,
+        },
+        $setOnInsert: { monthKey, monthStart: new Date(resetDocument.monthStart) },
+      },
+      { upsert: true },
+    );
+
+    return NextResponse.json({ document: resetDocument });
+  } catch (error) {
+    console.error("[api/habits] POST reset failed", error);
     return NextResponse.json(
       { document: null, message: friendlyMongoMessage(error) },
       { status: 500 },
